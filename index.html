@@ -373,7 +373,7 @@ const BREAK_BEFORE = ['과부족인원','정원외기간제','차기년도정원
 const blank = () => ({ app:APP_ID, version:1, groups:{ fin:{files:{}}, sep:{files:{}} }, schoolMeta:{}, subjectAlias:{}, reviews:{}, classNotes:{}, memos:[], updatedAt:null });
 let state = blank();
 const ui = { mode:'view', tab:'plan', sel:null, group:'fin', showAll:false, logs:{fin:[],sep:[]},
-             cmpMode:'fin', cell:null, diffFirst:true, lastEnt:null, memoQ:'',  passGroup:'item', passFilter:'pass', passQ:'', clsFilter:'all', clsQ:'' };
+             cmpMode:'delta', cell:null, lastEnt:null, memoQ:'',  passGroup:'item', passFilter:'pass', passQ:'', clsFilter:'all', clsQ:'' };
 
 /* ===================== 유틸 ===================== */
 const $ = s => document.querySelector(s);
@@ -564,15 +564,12 @@ function renderSidebar(){
   const q = $('#sbSearch').value.trim();
   const ents = schoolEntries();
   let h = `<div class="sb-sec">전체</div>`;
-  let aggIds = ['ALL','ALL_M','ALL_H'];
-  if (ui.tab === 'cmp') aggIds = sortByDiff(aggIds.map(id => ({ id, sel:{type:'agg', id} }))).map(x => x.id);
-  for (const id of aggIds)
+  for (const id of ['ALL','ALL_M','ALL_H'])
     h += sbItem({type:'agg', id}, AGG[id], { fin:!!state.groups.fin.files[id], sep:!!state.groups.sep.files[id] });
   for (const lv of ['M','H','E']){
     const all = ents.filter(e => e.level === lv);
     if (lv === 'E' && !all.length) continue;
-    let list = all.filter(e => !q || e.display.includes(q));
-    if (ui.tab === 'cmp') list = sortByDiff(list.map(e => ({ e, sel:{type:'school', id:e.display} }))).map(x => x.e);
+    const list = all.filter(e => !q || e.display.includes(q));
     h += `<div class="sb-sec"><span>${LEVELS[lv]}</span><span>${all.length}</span></div>`;
     h += list.map(e => sbItem({type:'school', id:e.display}, e.display, { fin:!!e.groups.fin, sep:!!e.groups.sep })).join('');
     if (!all.length) h += `<div class="sb-empty" style="padding:4px 16px">학교 파일 없음</div>`;
@@ -814,7 +811,6 @@ $('#content').addEventListener('click', e => {
 });
 $('#content').addEventListener('change', e => {
   if (e.target.id === 'showAll'){ ui.showAll = e.target.checked; renderContent(); }
-  if (e.target.id === 'diffFirst'){ ui.diffFirst = e.target.checked; renderContent(); }
 });
 
 const S = $('#settingsMode');
@@ -982,15 +978,6 @@ function cmpModelRaw(sel, showAll){
   rows.forEach(r => r.cells.forEach(c => { if (c.st !== 'same') cnt[c.st]++; }));
   return { ek, F, P, subs, rows, vis, info, cnt };
 }
-// 정렬 순위: 미해결 차이(많은 순) → 통과만 있음 → 차이 없음 → 비교 불가
-function diffRank(sel){
-  try { const m = cmpModel(sel, false); if (m.missing) return [3, 0]; const un = m.cnt.diff + m.cnt.stale;
-    return un ? [0, -un] : m.cnt.pass ? [1, 0] : [2, 0]; } catch(e){ return [0, 0]; }
-}
-function sortByDiff(items){
-  return items.map((x, i) => ({ x, i, r:diffRank(x.sel) }))
-    .sort((a, b) => a.r[0] - b.r[0] || a.r[1] - b.r[1] || a.i - b.i).map(o => o.x);
-}
 function diffBadge(sel){
   const m = cmpModel(sel, false);
   if (m.missing) return `<span class="bdg none" title="9월·최종 중 하나가 없음">–</span>`;
@@ -1007,10 +994,10 @@ function renderCompare(){
   const sel = ui.sel, title = entName(sel);
   let m = cmpModel(sel, ui.showAll);
   const entChanged = ui.lastEnt !== entKey(sel); ui.lastEnt = entKey(sel);
+  if (entChanged) ui.cmpMode = 'delta';
   const prevScroll = !entChanged && $('.cmp-scroll') ? $('.cmp-scroll').scrollLeft : 0;
   let tb = `<div class="toolbar">
-    <div class="seg">${[['fin','최종값'],['sep','9월값'],['delta','차이(최종−9월)']].map(([k, v]) => `<button data-cmode="${k}" class="${ui.cmpMode === k ? 'on' : ''}">${v}</button>`).join('')}</div>
-    <label class="chk"><input type="checkbox" id="diffFirst" ${ui.diffFirst ? 'checked' : ''}>차이 있는 교과 먼저</label>
+    <div class="seg">${[['delta','차이(최종−9월)'],['fin','최종값'],['sep','9월값']].map(([k, v]) => `<button data-cmode="${k}" class="${ui.cmpMode === k ? 'on' : ''}">${v}</button>`).join('')}</div>
     <label class="chk"><input type="checkbox" id="showAll" ${ui.showAll ? 'checked' : ''}>정원·현원 0인 교과도 보기</label>
     <span class="spacer" style="flex:1"></span>
     <span class="lg"><i class="sw diff"></i>차이(미해결)<i class="sw stale"></i>재확인 필요<i class="sw pass"></i>통과(사유·확인)</span>
@@ -1021,16 +1008,6 @@ function renderCompare(){
     return;
   }
   const total = m.cnt.diff + m.cnt.pass + m.cnt.stale;
-  if (ui.diffFirst){
-    const hasDiff = i => m.rows.some(r => r.cells[i].st !== 'same');
-    m = { ...m, vis:[...m.vis.filter(hasDiff), ...m.vis.filter(i => !hasDiff(i))] };
-  }
-  if (!ui.cell && total){
-    const pri = { diff:0, stale:1, pass:2 }; let best = null;
-    m.rows.forEach(r => m.vis.forEach(i => { const c = r.cells[i];
-      if (c.st !== 'same' && (!best || pri[c.st] < pri[best.st])) best = { label:r.label, s:c.s, st:c.st }; }));
-    if (best) ui.cell = { label:best.label, s:best.s };
-  }
   const sumAbs = m.rows.reduce((a, r) => a + (r.abs || 0), 0);
   const cards = `<div class="cards">
     <div class="cardn ink"><div class="k">차이 발생 칸</div><div class="n">${total}<small>칸</small></div></div>
