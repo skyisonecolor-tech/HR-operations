@@ -99,13 +99,40 @@ table.plan tr.brk th,table.plan tr.brk td{border-top:2px solid #9aa3af}
 .empty{background:var(--surface);border:1px dashed var(--line);border-radius:10px;padding:40px;text-align:center;color:var(--muted)}
 
 /* 인쇄 맞춤용 */
-#printArea.printing{width:277mm;padding:0;border:none;border-radius:0}
-#printArea.printing table.plan{font-size:10px}
-#printArea.printing table.plan thead th{font-size:9.5px;height:30px}
-#printArea.printing table.plan col.c-label{width:118px}
-#printArea.printing.roomy table.plan{font-size:11.5px}
-#printArea.printing.roomy table.plan th,#printArea.printing.roomy table.plan td{padding:6px 2px}
-#printArea.printing.roomy table.plan thead th{font-size:11px;height:40px}
+.printing{width:277mm;padding:0;border:none;border-radius:0}
+.printing .cmp-scroll{overflow:visible}
+.printing table.plan{min-width:0!important}
+.printing table.plan .stk{position:static;box-shadow:none}
+.printing .cards{grid-template-columns:repeat(4,1fr)}
+.printing .cardn{padding:4px 10px} .printing .cardn .n{font-size:15px}
+#batchPrint{position:absolute;left:-30000px;top:0;width:277mm;background:#fff}
+.bpage{background:#fff}
+#batchModal{position:fixed;inset:0;z-index:40;background:rgba(17,24,39,.45);display:grid;place-items:center;padding:16px}
+.bm{background:var(--surface);border-radius:14px;width:min(560px,100%);max-height:calc(100vh - 32px);overflow:auto;padding:18px 20px;box-shadow:0 20px 50px rgba(0,0,0,.3)}
+.bm h3{margin:0 0 2px;font-size:17px}
+.bm .sub{color:var(--muted);font-size:12.5px;margin-bottom:12px}
+.bm h4{margin:12px 0 6px;font-size:13px}
+.bm .opts{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.bm .opt{display:flex;gap:8px;align-items:flex-start;border:1px solid var(--line);border-radius:10px;padding:8px 10px;cursor:pointer;font-size:13px}
+.bm .opt:hover{background:#f9fafb}
+.bm .opt.on{border-color:#111827;background:#f3f4f6}
+.bm .opt small{display:block;color:var(--muted);font-size:11.5px}
+.bm .opt input{margin-top:3px}
+.bm .preview{margin-top:12px;background:#f8fafc;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13px}
+.bm .preview .skip{color:var(--muted);font-size:12px;margin-top:4px;max-height:70px;overflow:auto}
+.bm .acts{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
+@media print{
+  body.batch-print > *:not(#batchPrint){display:none!important}
+  body.batch-print #batchPrint{position:static;left:auto}
+  .bpage{break-after:page;page-break-after:always}
+  .bpage:last-child{break-after:auto;page-break-after:auto}
+}
+.printing table.plan{font-size:10px}
+.printing table.plan thead th{font-size:9.5px;height:30px}
+.printing table.plan col.c-label{width:118px}
+.printing.roomy table.plan{font-size:11.5px}
+.printing.roomy table.plan th,.printing.roomy table.plan td{padding:6px 2px}
+.printing.roomy table.plan thead th{font-size:11px;height:40px}
 @page{size:A4 landscape;margin:9mm 10mm}
 @media print{
   body{background:#fff}
@@ -355,6 +382,7 @@ table.mt td.empty-row{color:var(--muted);text-align:center;padding:14px}
 
 <input type="file" id="loadInput" accept=".json,application/json" hidden>
 <div id="toast" hidden></div>
+<div id="batchModal" hidden></div>
 
 <script>
 'use strict';
@@ -607,16 +635,19 @@ function renderContent(){
   tb += `<label class="chk"><input type="checkbox" id="showAll" ${ui.showAll ? 'checked' : ''}>정원·현원 0인 교과도 보기</label>
     <span class="spacer"></span>
     <button class="btn" id="btnXlsx" ${rec ? '' : 'disabled'}>엑셀 다운로드</button>
-    <button class="btn primary" id="btnPrint" ${rec ? '' : 'disabled'}>A4 인쇄</button></div>`;
+    <button class="btn primary" id="btnPrint" ${rec ? '' : 'disabled'}>A4 인쇄</button>
+    <button class="btn" id="btnBatch" title="여러 학교·전체를 한 번에 엑셀/인쇄">일괄 출력</button></div>`;
 
   if (!rec){
     el.innerHTML = tb + `<div class="empty"><b>${esc(title)}</b> 자료가 아직 없습니다.<br>⚙ 설정 모드에서 9월/최종 엑셀 파일을 업로드하세요.</div>`;
     return;
   }
-  const m = buildModel(rec, ui.showAll);
+  el.innerHTML = tb + `<div id="printArea" class="${g}">${planPageInner(rec, title, g, ui.showAll)}</div>`;
+}
+function planPageInner(rec, title, g, showAll){
+  const m = buildModel(rec, showAll);
   const levelName = rec.kind === 'SCHOOL' ? LEVELS[sLevel(rec.origName)] : AGG[rec.kind];
-  let t = `<div id="printArea" class="${g}">
-    <div class="ph">
+  let t = `<div class="ph">
       <h2>${esc(title)} <span class="gtag ${g}">${GROUPS[g].full}</span></h2>
       <div class="meta">
         ${rec.office ? `<span>지원청 <b>${esc(rec.office)}</b></span>` : ''}
@@ -634,17 +665,18 @@ function renderContent(){
   t += `</tbody></table>`;
   if (m.info.length) t += `<div class="info">${m.info.map(x => `<div><span>${esc(x.label)}</span> <b>${esc(x.value)}</b></div>`).join('')}</div>`;
   const notes = [];
-  if (!ui.showAll && m.hiddenCount) notes.push(`정원·현원이 모두 0(빈칸)인 교과 ${m.hiddenCount}개는 표시하지 않음`);
+  if (!showAll && m.hiddenCount) notes.push(`정원·현원이 모두 0(빈칸)인 교과 ${m.hiddenCount}개는 표시하지 않음`);
   if (m.computedTotal) notes.push('합계 열은 업로드 파일에 없어 자동 계산');
   notes.push(`원본: ${rec.fileName} (업로드 ${fmtTime(rec.uploadedAt)})`);
-  t += `<div class="foot">${esc(notes.join(' · '))}</div></div>`;
-  el.innerHTML = tb + t;
+  t += `<div class="foot">${esc(notes.join(' · '))}</div>`;
+  return t;
 }
 
 /* ===================== 인쇄 / 엑셀 ===================== */
 const MM = 3.7795;
-function fitPrint(){
-  const a = $('#printArea'); if (!a) return;
+function fitPrint(){ fitEl($('#printArea')); }
+function fitEl(a){
+  if (!a) return;
   a.style.zoom = ''; a.classList.remove('roomy'); a.classList.add('printing');
   const W = 277 * MM, H = 188 * MM;
   a.classList.add('roomy');                       // 여유 있게 키워 보고
@@ -657,10 +689,9 @@ window.addEventListener('beforeprint', fitPrint);
 window.addEventListener('afterprint', unfitPrint);
 function doPrint(){ fitPrint(); window.print(); setTimeout(unfitPrint, 500); }
 
-function exportExcel(){
-  const g = ui.group, rec = getRec(ui.sel, g); if (!rec) return;
-  const m = buildModel(rec, ui.showAll);
-  const title = ui.sel.type === 'agg' ? AGG[ui.sel.id] : ui.sel.id;
+const safeName = s => String(s).replace(/[\\/:*?"<>|]/g, '_');
+function planSheet(rec, title, g, showAll){
+  const m = buildModel(rec, showAll);
   const aoa = [
     [`${title} — ${GROUPS[g].full}`],
     [`지원청: ${rec.office || '-'} / 원본: ${rec.fileName} / 출력: ${fmtTime(new Date().toISOString())}`],
@@ -674,12 +705,153 @@ function exportExcel(){
   ws['!cols'] = [{ wch:18 }, ...m.vis.map(() => ({ wch:6 }))];
   ws['!merges'] = [{ s:{r:0,c:0}, e:{r:0,c:Math.max(1, m.vis.length)} }, { s:{r:1,c:0}, e:{r:1,c:Math.max(1, m.vis.length)} }];
   ws['!margins'] = { left:0.3, right:0.3, top:0.4, bottom:0.4, header:0.2, footer:0.2 };
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, '교원조직예정표');
-  const safe = s => s.replace(/[\\/:*?"<>|]/g, '_');
-  const out = XLSX.write(wb, { bookType:'xlsx', type:'array' });
-  downloadBlob(new Blob([out], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), safe(`${GROUPS[g].label}_${title}_교원조직예정표.xlsx`));
+  return ws;
 }
+function exportExcel(){
+  const g = ui.group, rec = getRec(ui.sel, g); if (!rec) return;
+  const title = entName(ui.sel);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, planSheet(rec, title, g, ui.showAll), '교원조직예정표');
+  saveBook(wb, safeName(`${GROUPS[g].label}_${title}_교원조직예정표.xlsx`));
+}
+const MODE_LABEL = { delta:'차이(최종−9월)', fin:'최종값', sep:'9월값' };
+function cmpSheet(m, title, mode){
+  const val = c => mode === 'fin' ? (c.f ?? '') : mode === 'sep' ? (c.p ?? '') : (c.st === 'same' ? '' : (isNum(c.f) && isNum(c.p) ? nz(c.f) - nz(c.p) : '값 다름'));
+  const head = ['구분', ...m.vis.map(i => m.subs[i]), '합계', '차이 칸', '증감 합', '차이 합계'];
+  const aoa = [[`${title} — 9월→최종 비교 (${MODE_LABEL[mode]})`],
+    [`9월 원본: ${m.P.fileName} / 최종 원본: ${m.F.fileName} / 출력: ${fmtTime(new Date().toISOString())}`], [], head];
+  m.rows.forEach(r => {
+    const tot = !r.numeric ? '' : mode === 'fin' ? r.sumF : mode === 'sep' ? r.sumP : (r.sumF - r.sumP || '');
+    aoa.push([r.label, ...m.vis.map(i => val(r.cells[i])), tot, r.nDiff || '', r.net || '', r.abs || '']);
+  });
+  const total = m.cnt.diff + m.cnt.pass + m.cnt.stale;
+  aoa.push(['차이 합계', ...m.vis.map(() => ''), '', total || '', m.rows.reduce((a, r) => a + (r.net || 0), 0) || '', m.rows.reduce((a, r) => a + (r.abs || 0), 0) || '']);
+  if (m.info.length){ aoa.push([]); m.info.forEach(x => aoa.push([x.label, `${x.p ?? '-'} → ${x.f ?? '-'}`])); }
+  aoa.push([], ['[차이 목록]'], ['항목','교과','9월','최종','차이','상태','사유']);
+  const list = m.rows.flatMap(r => r.cells.filter(c => c.st !== 'same').map(c => ({ r, c })));
+  list.forEach(({ r, c }) => { const rv = state.reviews[cellKey(m.ek, r.label, c.s)];
+    aoa.push([r.label, c.s, nz(c.p), nz(c.f), isNum(c.f) && isNum(c.p) ? nz(c.f) - nz(c.p) : '값 다름', ST_LABEL[c.st], rv?.reason || '']); });
+  if (!list.length) aoa.push(['(차이 없음)']);
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+  ws['!cols'] = [{ wch:18 }, ...m.vis.map(() => ({ wch:6 })), { wch:7 }, { wch:7 }, { wch:7 }, { wch:8 }];
+  ws['!merges'] = [{ s:{r:0,c:0}, e:{r:0,c:Math.max(1, m.vis.length)} }, { s:{r:1,c:0}, e:{r:1,c:Math.max(1, m.vis.length)} }];
+  return ws;
+}
+function exportCmpExcel(){
+  const m = cmpModel(ui.sel, ui.showAll); if (m.missing) return;
+  const title = entName(ui.sel), wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, cmpSheet(m, title, ui.cmpMode), '9월-최종 비교');
+  saveBook(wb, safeName(`9월-최종비교_${title}.xlsx`));
+}
+
+/* ----- 일괄 출력 ----- */
+const SCOPES = { M:'중학교', H:'고등학교', T:'전체 파일', ALL:'모두' };
+ui.batch = { scope:'ALL', groups:'cur', mode:null, showAll:null };
+function scopeEntities(scope){
+  const all = allEntities(), agg = id => all.find(e => e.sel.type === 'agg' && e.sel.id === id);
+  if (scope === 'M') return [agg('ALL_M'), ...all.filter(e => e.level === 'M')];
+  if (scope === 'H') return [agg('ALL_H'), ...all.filter(e => e.level === 'H')];
+  if (scope === 'T') return all.filter(e => e.level === 'T');
+  return all;
+}
+function batchJobs(){
+  const B = ui.batch, kind = ui.tab === 'cmp' ? 'cmp' : 'plan', jobs = [], skipped = [];
+  for (const e of scopeEntities(B.scope)){
+    if (kind === 'cmp'){
+      const m = cmpModel(e.sel, B.showAll);
+      if (m.missing) skipped.push(`${e.name} (${[m.missing.sep ? '9월' : '', m.missing.fin ? '최종' : ''].filter(Boolean).join('·')} 없음)`);
+      else jobs.push({ e, m });
+    } else {
+      const gs = B.groups === 'both' ? VIEW_ORDER : [B.groups === 'cur' ? ui.group : B.groups];
+      for (const g of gs){ const rec = getRec(e.sel, g); if (rec) jobs.push({ e, g, rec }); else skipped.push(`${e.name} (${GROUPS[g].label} 없음)`); }
+    }
+  }
+  return { kind, jobs, skipped };
+}
+function openBatch(){
+  ui.batch.showAll = ui.showAll;
+  ui.batch.mode = ui.cmpMode;
+  if (ui.batch.groups !== 'both') ui.batch.groups = 'cur';
+  renderBatch(); $('#batchModal').hidden = false;
+}
+function renderBatch(){
+  const B = ui.batch, { kind, jobs, skipped } = batchJobs();
+  const cnt = sc => scopeEntities(sc).length;
+  const opt = (name, val, cur, label, sub) => `<label class="opt${val === cur ? ' on' : ''}"><input type="radio" name="${name}" value="${val}" ${val === cur ? 'checked' : ''}><span>${label}${sub ? `<small>${sub}</small>` : ''}</span></label>`;
+  const nM = allEntities().filter(e => e.level === 'M').length, nH = allEntities().filter(e => e.level === 'H').length;
+  $('#batchModal').innerHTML = `<div class="bm" role="dialog" aria-modal="true">
+    <h3>일괄 출력 — ${kind === 'cmp' ? '9월-최종 비교' : '교원조직예정표'}</h3>
+    <div class="sub">여러 학교·전체를 한 번에 엑셀(학교별 시트)로 받거나 A4로 인쇄합니다. 한 곳당 A4 1장입니다.</div>
+    <h4>출력 범위</h4><div class="opts">
+      ${opt('scope','M',B.scope,'중학교',`중학교 전체 + 중학교 ${nM}교`)}
+      ${opt('scope','H',B.scope,'고등학교',`고등학교 전체 + 고등학교 ${nH}교`)}
+      ${opt('scope','T',B.scope,'전체 파일','중·고 전체 · 중학교 전체 · 고등학교 전체')}
+      ${opt('scope','ALL',B.scope,'모두',`전체 3개 + 모든 학교 ${cnt('ALL') - 3}교`)}</div>
+    ${kind === 'plan' ? `<h4>자료</h4><div class="opts">
+      ${opt('groups','cur',B.groups,`지금 보는 자료 (${GROUPS[ui.group].label})`,'')}
+      ${opt('groups','both',B.groups,'최종 + 9월 둘 다','학교마다 최종, 9월 순서')}</div>`
+    : `<h4>표시 값</h4><div class="opts" style="grid-template-columns:repeat(3,1fr)">
+      ${opt('mode','delta',B.mode,'차이(최종−9월)','')}${opt('mode','fin',B.mode,'최종값','')}${opt('mode','sep',B.mode,'9월값','')}</div>`}
+    <label class="chk" style="margin:10px 0 0;display:flex"><input type="checkbox" id="bShowAll" ${B.showAll ? 'checked' : ''}> 정원·현원 0인 교과도 포함</label>
+    <div class="preview"><b>출력 ${jobs.length}개</b>${kind === 'plan' ? '' : ' (학교/전체별 1장)'}${skipped.length ? ` · 자료 없어 제외 ${skipped.length}개<div class="skip">${skipped.map(esc).join(', ')}</div>` : ''}</div>
+    <div class="acts"><button class="btn" id="bClose">닫기</button>
+      <button class="btn" id="bXlsx" ${jobs.length ? '' : 'disabled'}>엑셀 다운로드 (시트 ${jobs.length}개)</button>
+      <button class="btn primary" id="bPrint" ${jobs.length ? '' : 'disabled'}>인쇄 (A4 ${jobs.length}장)</button></div></div>`;
+}
+function uniqueSheet(wb, name){
+  let base = safeName(name).replace(/[\[\]]/g, '').slice(0, 31) || '시트', n = base, i = 2;
+  while (wb.SheetNames.includes(n)){ const suf = `(${i++})`; n = base.slice(0, 31 - suf.length) + suf; }
+  return n;
+}
+function batchExcel(){
+  const B = ui.batch, { kind, jobs, skipped } = batchJobs(); if (!jobs.length) return;
+  const wb = XLSX.utils.book_new(), index = [['번호','시트 이름','학교/구분','학교급', kind === 'cmp' ? '차이 칸' : '자료']];
+  const sheets = jobs.map((j, i) => {
+    const name = uniqueSheet(wb, kind === 'plan' && B.groups === 'both' ? `${j.e.name}(${GROUPS[j.g].label})` : j.e.name);
+    wb.SheetNames.push(name); // 이름 예약
+    const ws = kind === 'cmp' ? cmpSheet(j.m, j.e.name, B.mode) : planSheet(j.rec, j.e.name, j.g, B.showAll);
+    index.push([i + 1, name, j.e.name, j.e.level === 'T' ? '전체' : LEVELS[j.e.level], kind === 'cmp' ? (j.m.cnt.diff + j.m.cnt.pass + j.m.cnt.stale) : GROUPS[j.g].full]);
+    return [name, ws];
+  });
+  wb.SheetNames = [];
+  if (skipped.length){ index.push([], ['자료 없어 제외'], ...skipped.map(x => ['', x])); }
+  const idx = XLSX.utils.aoa_to_sheet(index); idx['!cols'] = [{wch:6},{wch:28},{wch:20},{wch:8},{wch:20}];
+  XLSX.utils.book_append_sheet(wb, idx, '목록');
+  sheets.forEach(([n, ws]) => XLSX.utils.book_append_sheet(wb, ws, n));
+  const label = kind === 'cmp' ? `9월-최종비교_${MODE_LABEL[B.mode].replace(/[()−]/g, '')}` : `교원조직예정표_${B.groups === 'both' ? '최종+9월' : GROUPS[B.groups === 'cur' ? ui.group : B.groups].label}`;
+  saveBook(wb, safeName(`${label}_${SCOPES[B.scope]}_일괄.xlsx`));
+}
+function batchPrint(){
+  const B = ui.batch, { kind, jobs } = batchJobs(); if (!jobs.length) return;
+  $('#batchModal').hidden = true;
+  const old = $('#batchPrint'); if (old) old.remove();
+  const box = document.createElement('div'); box.id = 'batchPrint';
+  box.innerHTML = jobs.map(j => kind === 'cmp'
+    ? `<div class="bpage">${cmpPageInner(j.m, j.e.name, B.mode, null)}</div>`
+    : `<div class="bpage ${j.g}">${planPageInner(j.rec, j.e.name, j.g, B.showAll)}</div>`).join('');
+  box.querySelectorAll('.foot').forEach(f => { if (kind === 'cmp') f.remove(); });
+  document.body.appendChild(box);
+  box.querySelectorAll('.bpage').forEach(fitEl);
+  document.body.classList.add('batch-print');
+  setTimeout(() => {
+    window.print();
+    setTimeout(() => { box.remove(); document.body.classList.remove('batch-print'); }, 300);
+  }, 50);
+}
+$('#batchModal').addEventListener('click', e => {
+  if (e.target.id === 'batchModal' || e.target.id === 'bClose'){ $('#batchModal').hidden = true; return; }
+  if (e.target.id === 'bXlsx') return batchExcel();
+  if (e.target.id === 'bPrint') return batchPrint();
+});
+$('#batchModal').addEventListener('change', e => {
+  const t = e.target, B = ui.batch;
+  if (t.name === 'scope') B.scope = t.value;
+  else if (t.name === 'groups') B.groups = t.value;
+  else if (t.name === 'mode') B.mode = t.value;
+  else if (t.id === 'bShowAll') B.showAll = t.checked;
+  renderBatch();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#batchModal').hidden) $('#batchModal').hidden = true; });
 
 /* ===================== 설정 모드 렌더 ===================== */
 function groupPanel(g){
@@ -808,6 +980,8 @@ $('#content').addEventListener('click', e => {
   if (gb && !gb.disabled){ ui.group = gb.dataset.group; renderContent(); return; }
   if (e.target.id === 'btnPrint') doPrint();
   if (e.target.id === 'btnXlsx') exportExcel();
+  if (e.target.id === 'btnCmpXlsx') exportCmpExcel();
+  if (e.target.id === 'btnBatch') openBatch();
 });
 $('#content').addEventListener('change', e => {
   if (e.target.id === 'showAll'){ ui.showAll = e.target.checked; renderContent(); }
@@ -1001,12 +1175,20 @@ function renderCompare(){
     <label class="chk"><input type="checkbox" id="showAll" ${ui.showAll ? 'checked' : ''}>정원·현원 0인 교과도 보기</label>
     <span class="spacer" style="flex:1"></span>
     <span class="lg"><i class="sw diff"></i>차이(미해결)<i class="sw stale"></i>재확인 필요<i class="sw pass"></i>통과(사유·확인)</span>
-    <button class="btn primary" id="btnPrint" ${m.missing ? 'disabled' : ''}>A4 인쇄</button></div>`;
+    <button class="btn" id="btnCmpXlsx" ${m.missing ? 'disabled' : ''}>엑셀 다운로드</button>
+    <button class="btn primary" id="btnPrint" ${m.missing ? 'disabled' : ''}>A4 인쇄</button>
+    <button class="btn" id="btnBatch" title="여러 학교·전체를 한 번에 엑셀/인쇄">일괄 출력</button></div>`;
   if (m.missing){
     const miss = [m.missing.sep ? '9월' : '', m.missing.fin ? '최종' : ''].filter(Boolean).join(', ');
     el.innerHTML = tb + `<div class="empty"><b>${esc(title)}</b> — 비교하려면 9월·최종 자료가 모두 필요합니다.<br>없는 자료: <b>${miss}</b> (⚙ 설정에서 업로드)</div>`;
     return;
   }
+  const t = cmpPageInner(m, title, ui.cmpMode, ui.cell);
+  el.innerHTML = tb + `<div class="cmp-wrap"><div id="printArea">${t}</div><aside class="cmp-panel" id="cmpPanel">${panelHtml(m)}</aside></div>`;
+  if ($('.cmp-scroll')) $('.cmp-scroll').scrollLeft = prevScroll;
+}
+
+function cmpPageInner(m, title, mode, cell){
   const total = m.cnt.diff + m.cnt.pass + m.cnt.stale;
   const sumAbs = m.rows.reduce((a, r) => a + (r.abs || 0), 0);
   const cards = `<div class="cards">
@@ -1014,21 +1196,21 @@ function renderCompare(){
     <div class="cardn diff"><div class="k">미해결</div><div class="n">${m.cnt.diff + m.cnt.stale}<small>${m.cnt.stale ? `재확인 ${m.cnt.stale}` : ''}</small></div></div>
     <div class="cardn pass"><div class="k">통과 (사유·확인)</div><div class="n">${m.cnt.pass}</div></div>
     <div class="cardn ink"><div class="k">차이 수치 합계 (절대값)</div><div class="n">${sumAbs}<small>명</small></div></div></div>`;
-  const C = ui.cell;
+  const C = cell;
   const cellTxt = (c, numeric) => {
-    if (ui.cmpMode === 'fin') return fmt(c.f);
-    if (ui.cmpMode === 'sep') return fmt(c.p);
+    if (mode === 'fin') return fmt(c.f);
+    if (mode === 'sep') return fmt(c.p);
     if (c.st === 'same') return '';
     return numeric && isNum(c.f) && isNum(c.p) ? signed(nz(c.f) - nz(c.p)) : '≠';
   };
   const cls = c => {
     const a = [];
     if (c.st !== 'same') a.push('c-' + c.st);
-    else { const v = ui.cmpMode === 'sep' ? c.p : c.f; if (ui.cmpMode !== 'delta' && v === 0) a.push('z'); }
+    else { const v = mode === 'sep' ? c.p : c.f; if (mode !== 'delta' && v === 0) a.push('z'); }
     return a.join(' ');
   };
   let t = `<div class="ph"><h2>${esc(title)} <span class="gtag" style="background:#111827">9월 → 최종 비교</span></h2>
-      <div class="meta"><span>표시 값 <b>${{fin:'최종값',sep:'9월값',delta:'차이(최종−9월)'}[ui.cmpMode]}</b></span><span>9월 원본 <b>${esc(m.P.fileName)}</b></span><span>최종 원본 <b>${esc(m.F.fileName)}</b></span></div></div>
+      <div class="meta"><span>표시 값 <b>${{fin:'최종값',sep:'9월값',delta:'차이(최종−9월)'}[mode]}</b></span><span>9월 원본 <b>${esc(m.P.fileName)}</b></span><span>최종 원본 <b>${esc(m.F.fileName)}</b></span></div></div>
     ${cards}
     <div class="cmp-scroll"><table class="plan" style="min-width:${124 + m.vis.length * 22 + 172}px"><colgroup><col class="c-label">${m.vis.map(() => '<col>').join('')}<col style="width:44px"><col style="width:40px"><col style="width:44px"><col style="width:44px"></colgroup>
     <thead><tr><th class="corner">구분</th>${m.vis.map(i => `<th>${esc(m.subs[i])}</th>`).join('')}
@@ -1040,8 +1222,8 @@ function renderCompare(){
     t += m.vis.map(i => { const c = r.cells[i]; const isSel = C && C.label === r.label && C.s === c.s;
       return `<td data-r="${ri}" data-c="${i}" class="${cls(c)}${isSel ? ' csel' : ''}">${cellTxt(c, r.numeric)}</td>`; }).join('');
     let tot = '';
-    if (r.numeric){ const v = ui.cmpMode === 'fin' ? r.sumF : ui.cmpMode === 'sep' ? r.sumP : r.sumF - r.sumP;
-      tot = ui.cmpMode === 'delta' ? (v ? signed(v) : '') : String(v); }
+    if (r.numeric){ const v = mode === 'fin' ? r.sumF : mode === 'sep' ? r.sumP : r.sumF - r.sumP;
+      tot = mode === 'delta' ? (v ? signed(v) : '') : String(v); }
     t += `<td class="tot stk r3${r.numeric && r.sumF !== r.sumP ? ' tdiff' : ''}">${tot}</td>
       <td class="ex stk r2">${r.nDiff || ''}</td>
       <td class="ex stk r1 ${r.net > 0 ? 'pos' : r.net < 0 ? 'neg' : ''}">${r.net ? signed(r.net) : ''}</td>
@@ -1053,8 +1235,7 @@ function renderCompare(){
   if (m.info.length) t += `<div class="cmp-info">${m.info.map(x => { const d = String(x.f ?? '') !== String(x.p ?? '');
       return `<div><span style="color:var(--muted)">${esc(x.label)}</span> <span class="${d ? 'd' : ''}">${esc(x.p ?? '-')} → ${esc(x.f ?? '-')}</span></div>`; }).join('')}</div>`;
   t += `<div class="foot">셀을 누르면 오른쪽에 9월·최종 수치가 나옵니다. 차이 칸은 데이터를 고쳐 다시 올리거나, 사유를 적고 ‘확인함’을 체크하면 통과(초록)로 바뀝니다.</div>`;
-  el.innerHTML = tb + `<div class="cmp-wrap"><div id="printArea">${t}</div><aside class="cmp-panel" id="cmpPanel">${panelHtml(m)}</aside></div>`;
-  if ($('.cmp-scroll')) $('.cmp-scroll').scrollLeft = prevScroll;
+  return t;
 }
 
 function panelHtml(m){
