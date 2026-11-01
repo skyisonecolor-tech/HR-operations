@@ -202,9 +202,9 @@ table.mg td.c{text-align:center}
 table.plan .stk{position:sticky;z-index:1}
 table.plan .r0{right:0} table.plan .r1{right:44px} table.plan .r2{right:88px} table.plan .r3{right:128px;box-shadow:inset 2px 0 0 #9aa3af}
 table.plan td.tot.stk{background:#f6f7f9} table.plan thead th.stk{background:#eef0f4}
-table.plan td.c-diff{background:#fee2e2;color:#b91c1c;font-weight:700}
-table.plan td.c-stale{background:#fef3c7;color:#92400e;font-weight:700}
-table.plan td.c-pass{background:#dcfce7;color:#166534;font-weight:700}
+table.plan td.c-diff,table.plan tr.key td.c-diff{background:#fee2e2;color:#b91c1c;font-weight:700}
+table.plan td.c-stale,table.plan tr.key td.c-stale{background:#fef3c7;color:#92400e;font-weight:700}
+table.plan td.c-pass,table.plan tr.key td.c-pass{background:#dcfce7;color:#166534;font-weight:700}
 table.plan td[data-r]{cursor:pointer}
 table.plan td[data-r]:hover{box-shadow:inset 0 0 0 2px #93c5fd}
 table.plan td.csel{box-shadow:inset 0 0 0 2px #111827!important}
@@ -373,7 +373,7 @@ const BREAK_BEFORE = ['과부족인원','정원외기간제','차기년도정원
 const blank = () => ({ app:APP_ID, version:1, groups:{ fin:{files:{}}, sep:{files:{}} }, schoolMeta:{}, subjectAlias:{}, reviews:{}, classNotes:{}, memos:[], updatedAt:null });
 let state = blank();
 const ui = { mode:'view', tab:'plan', sel:null, group:'fin', showAll:false, logs:{fin:[],sep:[]},
-             cmpMode:'fin', cell:null, memoQ:'',  passGroup:'item', passFilter:'pass', passQ:'', clsFilter:'all', clsQ:'' };
+             cmpMode:'fin', cell:null, diffFirst:true, lastEnt:null, memoQ:'',  passGroup:'item', passFilter:'pass', passQ:'', clsFilter:'all', clsQ:'' };
 
 /* ===================== 유틸 ===================== */
 const $ = s => document.querySelector(s);
@@ -389,7 +389,11 @@ function toVal(v){
   return /^-?\d+(\.\d+)?$/.test(t) ? Number(t) : s;
 }
 const isEmptyVal = v => v == null || v === '' || v === 0;
+// 이름만으로 학교급을 알 수 없는 학교는 여기서 고정 (설정 > 학교 관리에서도 변경 가능)
+const LEVEL_OVERRIDE = { '군서미래국제학교':'M' };
 function inferLevel(n){
+  const key = String(n).replace(/\s/g,'');
+  if (LEVEL_OVERRIDE[key]) return LEVEL_OVERRIDE[key];
   if (/중학교$|중$/.test(n)) return 'M';
   if (/고등학교$|고$/.test(n)) return 'H';
   if (/고등학교/.test(n)) return 'H';
@@ -420,6 +424,7 @@ function normalize(o){
   s.groups.fin.files = o.groups.fin.files || {};
   s.groups.sep.files = o.groups.sep.files || {};
   s.schoolMeta = o.schoolMeta || {};
+  for (const [name, m] of Object.entries(s.schoolMeta)){ const lv = LEVEL_OVERRIDE[name.replace(/\s/g,'')]; if (lv && m && m.level === 'E' && !m.levelManual) m.level = lv; }
   s.subjectAlias = o.subjectAlias || {};
   s.reviews = o.reviews || {};
   s.classNotes = o.classNotes || {};
@@ -559,12 +564,15 @@ function renderSidebar(){
   const q = $('#sbSearch').value.trim();
   const ents = schoolEntries();
   let h = `<div class="sb-sec">전체</div>`;
-  for (const id of ['ALL','ALL_M','ALL_H'])
+  let aggIds = ['ALL','ALL_M','ALL_H'];
+  if (ui.tab === 'cmp') aggIds = sortByDiff(aggIds.map(id => ({ id, sel:{type:'agg', id} }))).map(x => x.id);
+  for (const id of aggIds)
     h += sbItem({type:'agg', id}, AGG[id], { fin:!!state.groups.fin.files[id], sep:!!state.groups.sep.files[id] });
   for (const lv of ['M','H','E']){
     const all = ents.filter(e => e.level === lv);
     if (lv === 'E' && !all.length) continue;
-    const list = all.filter(e => !q || e.display.includes(q));
+    let list = all.filter(e => !q || e.display.includes(q));
+    if (ui.tab === 'cmp') list = sortByDiff(list.map(e => ({ e, sel:{type:'school', id:e.display} }))).map(x => x.e);
     h += `<div class="sb-sec"><span>${LEVELS[lv]}</span><span>${all.length}</span></div>`;
     h += list.map(e => sbItem({type:'school', id:e.display}, e.display, { fin:!!e.groups.fin, sep:!!e.groups.sep })).join('');
     if (!all.length) h += `<div class="sb-empty" style="padding:4px 16px">학교 파일 없음</div>`;
@@ -806,6 +814,7 @@ $('#content').addEventListener('click', e => {
 });
 $('#content').addEventListener('change', e => {
   if (e.target.id === 'showAll'){ ui.showAll = e.target.checked; renderContent(); }
+  if (e.target.id === 'diffFirst'){ ui.diffFirst = e.target.checked; renderContent(); }
 });
 
 const S = $('#settingsMode');
@@ -818,7 +827,7 @@ S.addEventListener('change', e => {
   }
   if (t.dataset.level !== undefined){
     const o = t.dataset.level; state.schoolMeta[o] = state.schoolMeta[o] || { display:'', level:inferLevel(o) };
-    state.schoolMeta[o].level = t.value; persist(); return;
+    state.schoolMeta[o].level = t.value; state.schoolMeta[o].levelManual = true; persist(); return;
   }
   if (t.dataset.subj !== undefined){
     const s = t.dataset.subj, v = t.value.trim();
@@ -973,6 +982,15 @@ function cmpModelRaw(sel, showAll){
   rows.forEach(r => r.cells.forEach(c => { if (c.st !== 'same') cnt[c.st]++; }));
   return { ek, F, P, subs, rows, vis, info, cnt };
 }
+// 정렬 순위: 미해결 차이(많은 순) → 통과만 있음 → 차이 없음 → 비교 불가
+function diffRank(sel){
+  try { const m = cmpModel(sel, false); if (m.missing) return [3, 0]; const un = m.cnt.diff + m.cnt.stale;
+    return un ? [0, -un] : m.cnt.pass ? [1, 0] : [2, 0]; } catch(e){ return [0, 0]; }
+}
+function sortByDiff(items){
+  return items.map((x, i) => ({ x, i, r:diffRank(x.sel) }))
+    .sort((a, b) => a.r[0] - b.r[0] || a.r[1] - b.r[1] || a.i - b.i).map(o => o.x);
+}
 function diffBadge(sel){
   const m = cmpModel(sel, false);
   if (m.missing) return `<span class="bdg none" title="9월·최종 중 하나가 없음">–</span>`;
@@ -987,10 +1005,12 @@ function renderCompare(){
   const el = $('#content');
   ensureSelection();
   const sel = ui.sel, title = entName(sel);
-  const m = cmpModel(sel, ui.showAll);
-  const prevScroll = $('.cmp-scroll') ? $('.cmp-scroll').scrollLeft : 0;
+  let m = cmpModel(sel, ui.showAll);
+  const entChanged = ui.lastEnt !== entKey(sel); ui.lastEnt = entKey(sel);
+  const prevScroll = !entChanged && $('.cmp-scroll') ? $('.cmp-scroll').scrollLeft : 0;
   let tb = `<div class="toolbar">
     <div class="seg">${[['fin','최종값'],['sep','9월값'],['delta','차이(최종−9월)']].map(([k, v]) => `<button data-cmode="${k}" class="${ui.cmpMode === k ? 'on' : ''}">${v}</button>`).join('')}</div>
+    <label class="chk"><input type="checkbox" id="diffFirst" ${ui.diffFirst ? 'checked' : ''}>차이 있는 교과 먼저</label>
     <label class="chk"><input type="checkbox" id="showAll" ${ui.showAll ? 'checked' : ''}>정원·현원 0인 교과도 보기</label>
     <span class="spacer" style="flex:1"></span>
     <span class="lg"><i class="sw diff"></i>차이(미해결)<i class="sw stale"></i>재확인 필요<i class="sw pass"></i>통과(사유·확인)</span>
@@ -1001,6 +1021,16 @@ function renderCompare(){
     return;
   }
   const total = m.cnt.diff + m.cnt.pass + m.cnt.stale;
+  if (ui.diffFirst){
+    const hasDiff = i => m.rows.some(r => r.cells[i].st !== 'same');
+    m = { ...m, vis:[...m.vis.filter(hasDiff), ...m.vis.filter(i => !hasDiff(i))] };
+  }
+  if (!ui.cell && total){
+    const pri = { diff:0, stale:1, pass:2 }; let best = null;
+    m.rows.forEach(r => m.vis.forEach(i => { const c = r.cells[i];
+      if (c.st !== 'same' && (!best || pri[c.st] < pri[best.st])) best = { label:r.label, s:c.s, st:c.st }; }));
+    if (best) ui.cell = { label:best.label, s:best.s };
+  }
   const sumAbs = m.rows.reduce((a, r) => a + (r.abs || 0), 0);
   const cards = `<div class="cards">
     <div class="cardn ink"><div class="k">차이 발생 칸</div><div class="n">${total}<small>칸</small></div></div>
