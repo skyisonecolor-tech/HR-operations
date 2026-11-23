@@ -322,6 +322,71 @@ table.ct td.note .nx.on{display:block}
 table.ct td.note .nx:hover{color:var(--neg)}
 table.ct td.note input{padding-right:24px}
 
+/* ---------- 셀 메모 ---------- */
+.has-memo{position:relative}
+.has-memo::after{content:'';position:absolute;top:0;right:0;border-style:solid;border-width:0 8px 8px 0;border-color:transparent #e11d48 transparent transparent;pointer-events:none}
+#memoTip{position:fixed;z-index:60;max-width:320px;background:#fffbe6;border:1px solid #e9c46a;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.18);padding:8px 10px;font-size:12.5px;pointer-events:none}
+#memoTip .mt-h{font-weight:700;margin-bottom:3px}
+#memoTip .mt-b{white-space:pre-wrap;line-height:1.5}
+#memoTip .mt-f{margin-top:5px;font-size:11px;color:#8a6d1f}
+.memo-ed{margin-top:12px;padding:10px;border:1px solid #fde68a;background:#fffbeb;border-radius:10px}
+.memo-ed .me-h{font-weight:700;font-size:13px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.memo-ed .me-h small{font-weight:500;color:var(--muted);font-size:11.5px}
+.memo-ed .me-ic{width:0;height:0;border-style:solid;border-width:0 9px 9px 0;border-color:transparent #e11d48 transparent transparent}
+.memo-ed input{width:100%;border:1px solid var(--line);border-radius:8px;padding:6px 8px;background:#fff}
+.memo-ed textarea{background:#fff}
+.me-chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.me-chip{border:1px solid #fcd34d;background:#fff;border-radius:999px;padding:2px 9px;font-size:12px;color:#92400e}
+.me-chip:hover{background:#fef3c7} .me-chip.on{background:#f59e0b;border-color:#f59e0b;color:#fff}
+.linked-school{padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:#f9fafb;font-weight:500}
+.ref{display:block;margin-top:4px;border:1px dashed #fda4af;background:#fff1f2;color:#9f1239;border-radius:6px;padding:3px 6px;font-size:11.5px;text-align:left;width:100%;line-height:1.35}
+.ref:hover{background:#ffe4e6}
+
+/* ---------- TO 증감 ---------- */
+.to-wrap{display:flex;gap:12px;align-items:flex-start}
+.to-main{flex:1;min-width:0}
+.to-scroll{overflow:auto;max-height:calc(100vh - 330px);border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table.tm{border-collapse:separate;border-spacing:0;font-size:12px;width:100%}
+table.tm th,table.tm td{border-right:1px solid var(--line2);border-bottom:1px solid var(--line2);padding:4px 5px;text-align:center;white-space:nowrap;font-variant-numeric:tabular-nums}
+table.tm thead th{position:sticky;top:0;z-index:2;background:#f1f3f6;font-size:11.5px;white-space:normal;word-break:keep-all;min-width:34px;vertical-align:bottom}
+table.tm .sch{position:sticky;left:0;z-index:1;background:#fff;text-align:left;min-width:130px;font-weight:500}
+table.tm thead .sch{z-index:3;background:#e9edf2}
+table.tm td.to{cursor:pointer;min-width:34px}
+table.tm td.to:hover{box-shadow:inset 0 0 0 2px #93c5fd}
+table.tm td.up{background:#dbeafe;color:#1d4ed8;font-weight:700}
+table.tm td.dn{background:#fee2e2;color:#b91c1c;font-weight:700}
+table.tm td.csel{box-shadow:inset 0 0 0 2px #111827!important}
+table.tm .sm{background:#f8fafc;font-weight:700}
+table.tm .sm.up-t{color:#1d4ed8} table.tm .sm.dn-t{color:#b91c1c}
+table.tm tr.sec td{background:#111827;color:#fff;text-align:left;font-weight:700;position:sticky;left:0}
+table.tm tr.sub td,table.tm tr.sub th{background:#eef2f7;font-weight:700}
+table.tm tr.agg td,table.tm tr.agg th{background:#fffbeb;font-weight:700}
+.tchip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:1px 8px;font-size:12px;margin:1px 2px;white-space:nowrap}
+.tchip.up{border-color:#bfdbfe;color:#1d4ed8} .tchip.dn{border-color:#fecaca;color:#b91c1c}
+.tchip.csel{outline:2px solid #111827}
+.ud{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:1100px){.ud{grid-template-columns:1fr}}
+.udbox{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.udbox h3{margin:0;padding:10px 12px;font-size:14px;display:flex;gap:8px;align-items:center}
+.udbox.up h3{background:#eff6ff;color:#1d4ed8} .udbox.dn h3{background:#fef2f2;color:#b91c1c}
+table.ul{width:100%;border-collapse:collapse;font-size:12.5px}
+table.ul th{background:#fafbfc;color:var(--muted);font-size:11.5px;text-align:left;padding:5px 8px;border-top:1px solid var(--line2)}
+table.ul td{padding:5px 8px;border-top:1px solid var(--line2);white-space:nowrap}
+table.ul td.n{text-align:right;font-variant-numeric:tabular-nums}
+table.ul tr[data-ek]{cursor:pointer} table.ul tr[data-ek]:hover td{background:#f0f6ff}
+table.ul tr.csel td{background:#e5e7eb}
+.to-desc{color:var(--muted);font-size:12.5px;margin:-4px 0 10px}
+.to-desc b{color:var(--ink)}
+.sw.up{background:#dbeafe;border-color:#93c5fd} .sw.dn{background:#fee2e2;border-color:#fca5a5}
+.sw.memo{width:0;height:0;border-style:solid;border-width:0 10px 10px 0;border-color:transparent #e11d48 transparent transparent;border-radius:0;background:none}
+.printing table.tm{font-size:10px} .printing .to-scroll{max-height:none;overflow:visible;border:none}
+.printing table.tm thead th,.printing table.tm .sch,.printing table.tm tr.sec td{position:static}
+@media print{
+  .full{display:block!important;overflow:visible!important;padding:0!important}
+  .to-wrap{display:block}
+  table.tm td.up,table.tm td.dn,table.tm tr.sec td,table.tm tr.sub td,table.tm tr.sub th,.has-memo::after{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+
 /* ---------- 점검 메모 ---------- */
 .memo{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:12px;overflow:hidden}
 .memo-h{display:flex;align-items:center;gap:8px;padding:10px 12px;background:#f8fafc;border-bottom:1px solid var(--line)}
@@ -365,6 +430,7 @@ table.mt td.empty-row{color:var(--muted);text-align:center;padding:14px}
     <button class="tab" data-tab="cmp">9월-최종 비교</button>
     <button class="tab" data-tab="pass">차이 통과 내역</button>
     <button class="tab" data-tab="cls">학급수 비교</button>
+    <button class="tab" data-tab="to">TO 증감</button>
     <button class="tab" data-tab="memo">점검 메모</button>
   </nav>
   <div class="full" id="tab-full" hidden></div>
@@ -398,7 +464,7 @@ const LEVELS = { M:'중학교', H:'고등학교', E:'기타' };
 const KEY_ROWS = ['당해년도정원','당해년도현원','기준년도정원'];
 const BREAK_BEFORE = ['과부족인원','정원외기간제','차기년도정원'];
 
-const blank = () => ({ app:APP_ID, version:1, groups:{ fin:{files:{}}, sep:{files:{}} }, schoolMeta:{}, subjectAlias:{}, reviews:{}, classNotes:{}, memos:[], updatedAt:null });
+const blank = () => ({ app:APP_ID, version:1, groups:{ fin:{files:{}}, sep:{files:{}} }, schoolMeta:{}, subjectAlias:{}, reviews:{}, classNotes:{}, memos:[], memoItems:[], updatedAt:null });
 let state = blank();
 const ui = { mode:'view', tab:'plan', sel:null, group:'fin', showAll:false, logs:{fin:[],sep:[]},
              cmpMode:'delta', cell:null, lastEnt:null, memoQ:'',  passGroup:'item', passFilter:'pass', passQ:'', clsFilter:'all', clsQ:'' };
@@ -438,8 +504,8 @@ function recTitle(rec){ return rec.kind === 'SCHOOL' ? sName(rec.origName) : AGG
 
 /* ===================== 저장 ===================== */
 function setSaveState(msg, err){ const el=$('#saveState'); el.textContent=msg; el.classList.toggle('err', !!err); }
-let cmpCache = new Map(), entCache = null;
-function invalidate(){ cmpCache.clear(); entCache = null; }
+let cmpCache = new Map(), entCache = null, memoIdx = null;
+function invalidate(){ cmpCache.clear(); entCache = null; memoIdx = null; }
 function persist(){
   invalidate();
   state.updatedAt = new Date().toISOString();
@@ -457,6 +523,7 @@ function normalize(o){
   s.reviews = o.reviews || {};
   s.classNotes = o.classNotes || {};
   s.memos = Array.isArray(o.memos) ? o.memos : [];
+  s.memoItems = Array.isArray(o.memoItems) ? o.memoItems : [];
   s.updatedAt = o.updatedAt || null;
   return s;
 }
@@ -679,6 +746,7 @@ function fitEl(a){
   if (!a) return;
   a.style.zoom = ''; a.classList.remove('roomy'); a.classList.add('printing');
   const W = 277 * MM, H = 188 * MM;
+  if (a.dataset.fit === 'width'){ a.style.zoom = Math.min(1, W / a.scrollWidth); return; }   // 여러 장: 가로만 맞춤
   a.classList.add('roomy');                       // 여유 있게 키워 보고
   if (a.scrollHeight > H || a.scrollWidth > W + 2) a.classList.remove('roomy');   // 넘치면 원래 크기
   const z = Math.min(1.35, W / a.scrollWidth, H / a.scrollHeight);
@@ -950,7 +1018,7 @@ function renderSettings(){
     <section class="card"><h2>5. 저장 · 불러오기 · 초기화</h2>
       <p class="hint">작업 내용은 이 브라우저에 자동 저장됩니다. 다른 컴퓨터에서 이어서 하려면 작업 파일(.json)로 저장해 가져가서 불러오세요.
       ${state.updatedAt ? `<br>마지막 변경: ${fmtTime(state.updatedAt)}` : ''}</p>
-      <div class="row"><button class="btn primary" id="btnSave">작업 파일 저장 (.json)</button><button class="btn" id="btnLoad">작업 파일 불러오기</button><button class="btn" id="setAllXlsx">통합 엑셀 다운로드 (메모·차이·학급수)</button></div>
+      <div class="row"><button class="btn primary" id="btnSave">작업 파일 저장 (.json)</button><button class="btn" id="btnLoad">작업 파일 불러오기</button><button class="btn" id="setAllXlsx">통합 엑셀 다운로드 (메모·차이·학급수·TO증감)</button></div>
       <div class="row"><button class="btn danger" data-reset="sep">9월 자료 초기화</button><button class="btn danger" data-reset="fin">최종 자료 초기화</button><button class="btn danger" data-reset="all">전체 초기화 (학교·교과 설정 포함)</button></div>
     </section></div>`;
 }
@@ -1073,8 +1141,9 @@ function renderView(){
   document.querySelectorAll('#tabs .tab').forEach(t => t.classList.toggle('active', t.dataset.tab === ui.tab));
   const side = ui.tab === 'plan' || ui.tab === 'cmp';
   $('#tab-plan').hidden = !side; $('#tab-full').hidden = side;
-  if (side){ renderSidebar(); renderContent(); }
+  if (side){ $('#tab-full').innerHTML = ''; renderSidebar(); renderContent(); }
   else if (ui.tab === 'pass') renderPass();
+  else if (ui.tab === 'to') renderTO();
   else if (ui.tab === 'cls') renderClass();
   else if (ui.tab === 'memo') renderMemo();
 }
@@ -1220,7 +1289,9 @@ function cmpPageInner(m, title, mode, cell){
     const rc = [KEY_ROWS.includes(lb) ? 'key' : '', BREAK_BEFORE.includes(lb) ? 'brk' : ''].filter(Boolean).join(' ');
     t += `<tr${rc ? ` class="${rc}"` : ''}><th title="${esc(r.label)}">${esc(r.label)}</th>`;
     t += m.vis.map(i => { const c = r.cells[i]; const isSel = C && C.label === r.label && C.s === c.s;
-      return `<td data-r="${ri}" data-c="${i}" class="${cls(c)}${isSel ? ' csel' : ''}">${cellTxt(c, r.numeric)}</td>`; }).join('');
+      const mk = (mode === 'fin' || mode === 'sep') ? cmKey({ ctx:mode, ek:m.ek, label:r.label, s:c.s }) : null;
+      const hm = mk && findCellMemo(mk);
+      return `<td data-r="${ri}" data-c="${i}" class="${cls(c)}${isSel ? ' csel' : ''}${hm ? ' has-memo' : ''}"${hm ? ` data-mk="${esc(mk)}"` : ''}>${cellTxt(c, r.numeric)}</td>`; }).join('');
     let tot = '';
     if (r.numeric){ const v = mode === 'fin' ? r.sumF : mode === 'sep' ? r.sumP : r.sumF - r.sumP;
       tot = mode === 'delta' ? (v ? signed(v) : '') : String(v); }
@@ -1234,7 +1305,7 @@ function cmpPageInner(m, title, mode, cell){
     <td class="tot stk r3"></td><td class="ex stk r2">${total || ''}</td><td class="ex stk r1 ${tNet > 0 ? 'pos' : tNet < 0 ? 'neg' : ''}">${tNet ? signed(tNet) : ''}</td><td class="ex stk r0">${sumAbs || ''}</td></tr></tfoot></table></div>`;
   if (m.info.length) t += `<div class="cmp-info">${m.info.map(x => { const d = String(x.f ?? '') !== String(x.p ?? '');
       return `<div><span style="color:var(--muted)">${esc(x.label)}</span> <span class="${d ? 'd' : ''}">${esc(x.p ?? '-')} → ${esc(x.f ?? '-')}</span></div>`; }).join('')}</div>`;
-  t += `<div class="foot">셀을 누르면 오른쪽에 9월·최종 수치가 나옵니다. 차이 칸은 데이터를 고쳐 다시 올리거나, 사유를 적고 ‘확인함’을 체크하면 통과(초록)로 바뀝니다.</div>`;
+  t += `<div class="foot">셀을 누르면 오른쪽에 9월·최종 수치가 나옵니다. 차이 칸은 데이터를 고쳐 다시 올리거나, 사유를 적고 ‘확인함’을 체크하면 통과(초록)로 바뀝니다. 최종값·9월값 화면에서는 칸마다 메모를 남길 수 있고(빨간 삼각형), 마우스를 올리면 내용이 보입니다.</div>`;
   return t;
 }
 
@@ -1243,13 +1314,15 @@ function panelHtml(m){
   const row = C && m.rows.find(r => r.label === C.label);
   const c = row && row.cells.find(x => x.s === C.s);
   let h = '';
-  if (!c) h += `<div class="pn-empty">표의 칸을 누르면 여기에 9월·최종 수치가 나옵니다.</div>`;
+  if (!c) h += `<div class="pn-empty">표의 칸을 누르면 여기에 9월·최종 수치가 나옵니다.${ui.cmpMode !== 'delta' ? '<br>최종값·9월값 화면에서는 칸마다 메모도 남길 수 있습니다.' : ''}</div>`;
   else {
     const d = row.numeric && isNum(c.f) && isNum(c.p) ? nz(c.f) - nz(c.p) : null;
     const k = cellKey(m.ek, row.label, c.s), r = state.reviews[k] || {};
     h += `<div class="pn-head"><div class="pn-t">${esc(c.s)}</div><div class="pn-sub">${esc(entName(ui.sel))} · ${esc(row.label)}</div></div>
       <div class="pn-vals"><div class="v sep"><span>9월</span><b>${fmt(c.p) || '0'}</b></div><div class="arrow">→</div><div class="v fin"><span>최종</span><b>${fmt(c.f) || '0'}</b></div></div>
       <div class="pn-delta ${c.st}">${c.st === 'same' ? '차이 없음' : `차이 ${d == null ? '(값이 다름)' : signed(d)} · ${ST_LABEL[c.st]}`}</div>`;
+    if (ui.cmpMode === 'fin' || ui.cmpMode === 'sep')
+      h += memoEditorHtml({ ctx:ui.cmpMode, ek:m.ek, label:row.label, s:c.s, ent:entName(ui.sel) });
     if (c.st !== 'same'){
       const msg = { diff:'수정한 엑셀을 다시 올리거나, 사유를 적고 ‘확인함’을 체크하세요.',
                     stale:`사유를 적은 뒤 값이 바뀌었습니다 (당시 9월 ${esc(r.sep)} → 최종 ${esc(r.fin)}). 다시 확인해 주세요.`,
@@ -1280,6 +1353,10 @@ $('#content').addEventListener('click', e => {
   if (td){
     const m = cmpModel(ui.sel, ui.showAll), r = m.rows[+td.dataset.r];
     ui.cell = { label:r.label, s:m.subs[+td.dataset.c] }; renderContent(); return;
+  }
+  if (ui.cell && (ui.cmpMode === 'fin' || ui.cmpMode === 'sep') && e.target.closest('.memo-ed')){
+    const cell = { ctx:ui.cmpMode, ek:entKey(ui.sel), label:ui.cell.label, s:ui.cell.s, ent:entName(ui.sel) };
+    if (memoEditorClick(e, cell, () => renderContent())) return;
   }
   const pl = e.target.closest('.pl');
   if (pl){ ui.cell = { label:pl.dataset.cl, s:pl.dataset.cs }; renderContent(); scrollToSel(); return; }
@@ -1531,6 +1608,10 @@ function schoolOptions(cur){
   return h;
 }
 function memoRowHtml(m, r){
+  if (r.cell) return `<tr data-rid="${r.id}"><td><div class="linked-school">${esc(r.school)}</div>
+      <button class="ref" data-jump="${m.id}|${r.id}" title="해당 셀로 이동">📍 ${esc(CTX_LABEL[r.cell.ctx] || '')}<br>${esc(r.cell.label)} · ${esc(r.cell.s)}</button></td>
+    <td><textarea data-rtext="${m.id}|${r.id}" rows="1" placeholder="점검 내용 입력">${esc(r.text)}</textarea></td>
+    <td><button class="rdel" data-rdel="${m.id}|${r.id}" title="행 삭제 (셀 메모도 삭제)">×</button></td></tr>`;
   return `<tr data-rid="${r.id}"><td><select data-rschool="${m.id}|${r.id}" class="${r.school ? '' : 'emp'}">${schoolOptions(r.school)}</select></td>
     <td><textarea data-rtext="${m.id}|${r.id}" rows="1" placeholder="점검 내용 입력">${esc(r.text)}</textarea></td>
     <td><button class="rdel" data-rdel="${m.id}|${r.id}" title="행 삭제">×</button></td></tr>`;
@@ -1546,7 +1627,7 @@ function renderMemo(){
       <span class="lg" id="memoStats">${memoStats()}</span>
       <span style="flex:1"></span>
       <button class="btn" id="memoXlsx" ${memos.length ? '' : 'disabled'}>점검 메모 엑셀</button>
-      <button class="btn primary" id="allXlsx">통합 엑셀 (메모·차이·학급수)</button></div>`;
+      <button class="btn primary" id="allXlsx" title="점검 메모·차이 내역·학급수·TO 증감을 시트별로">통합 엑셀</button></div>`;
   if (!memos.length) h += `<div class="memo-empty">아직 항목이 없습니다.<br>위의 <b>＋ 항목 추가</b>를 눌러 점검 항목을 만들고, 항목 앞의 <b>＋ 행 추가</b>로 학교별 내용을 적으세요.</div>`;
   memos.forEach((m, mi) => {
     h += `<div class="memo" data-mid="${m.id}">
@@ -1598,17 +1679,17 @@ function memoAddRow(mid){
   if (sel){ sel.scrollIntoView({ block:'center' }); sel.focus(); }
 }
 function memoSheet(){
-  const aoa = [['번호','항목','학교/구분','학교급','내용']], merges = [];
+  const aoa = [['번호','항목','학교/구분','학교급','내용','연결 셀']], merges = [];
   state.memos.forEach((m, mi) => {
     const start = aoa.length;
     const filled = m.rows.filter(r => r.school || String(r.text || '').trim());
     const rows = filled.length ? filled : [{ school:'', text:'' }];
-    rows.forEach(r => aoa.push([mi + 1, m.title || '(항목 없음)', r.school, entLevelName(r.school), r.text]));
+    rows.forEach(r => aoa.push([mi + 1, m.title || '(항목 없음)', r.school, entLevelName(r.school), r.text, r.cell ? `${CTX_LABEL[r.cell.ctx] || ''} / ${r.cell.label} / ${r.cell.s}` : '']));
     if (rows.length > 1){ merges.push({ s:{r:start,c:0}, e:{r:aoa.length - 1,c:0} }, { s:{r:start,c:1}, e:{r:aoa.length - 1,c:1} }); }
   });
   if (aoa.length === 1) aoa.push(['', '(작성된 메모 없음)']);
   const ws = XLSX.utils.aoa_to_sheet(aoa);
-  ws['!cols'] = [{wch:6},{wch:28},{wch:18},{wch:8},{wch:70}];
+  ws['!cols'] = [{wch:6},{wch:28},{wch:18},{wch:8},{wch:70},{wch:40}];
   ws['!merges'] = merges;
   return ws;
 }
@@ -1624,6 +1705,8 @@ function allExcel(){
   XLSX.utils.book_append_sheet(wb, passSheet(diffs), '차이 내역(전체)');
   XLSX.utils.book_append_sheet(wb, passSheet(diffs.filter(x => x.st === 'pass')), '차이 통과 내역');
   XLSX.utils.book_append_sheet(wb, clsSheet(cls), '학급수 비교');
+  XLSX.utils.book_append_sheet(wb, toListSheet(toData('cap', 'all')), 'TO증감(정원)');
+  XLSX.utils.book_append_sheet(wb, toListSheet(toData('cur', 'all')), 'TO증감(현원)');
   const p = n => String(n).padStart(2,'0'), d = new Date();
   saveBook(wb, `교원조직예정표_점검결과_${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}.xlsx`);
 }
@@ -1690,15 +1773,17 @@ FULL.addEventListener('click', e => {
     return;
   }
   if (b.dataset.addrow) return memoAddRow(b.dataset.addrow);
+  if (b.dataset.jump){ const [mid, rid] = b.dataset.jump.split('|'), r = findMemo(mid)?.rows.find(x => x.id === rid); if (r && r.cell) jumpToCell(r.cell); return; }
   if (b.dataset.mdel){
     const m = findMemo(b.dataset.mdel); if (!m) return;
-    if (!confirm(`‘${m.title || '(제목 없음)'}’ 항목과 기록 ${m.rows.length}건을 삭제할까요?`)) return;
+    const linked = m.rows.filter(r => r.cell).length;
+    if (!confirm(`‘${m.title || '(제목 없음)'}’ 항목과 기록 ${m.rows.length}건을 삭제할까요?${linked ? `\n(이 중 셀 메모 ${linked}건도 함께 삭제됩니다)` : ''}`)) return;
     state.memos = state.memos.filter(x => x !== m); persist(); renderMemo(); return;
   }
   if (b.dataset.rdel){
     const [mid, rid] = b.dataset.rdel.split('|'), m = findMemo(mid); if (!m) return;
     const r = m.rows.find(x => x.id === rid);
-    if (r && (r.text || r.school) && !confirm('이 행을 삭제할까요?')) return;
+    if (r && (r.text || r.school) && !confirm(r.cell ? '이 기록을 삭제할까요?\n(연결된 셀 메모도 함께 삭제됩니다)' : '이 행을 삭제할까요?')) return;
     m.rows = m.rows.filter(x => x.id !== rid); persist(); renderMemo(); return;
   }
   if (b.dataset.mmove){
@@ -1729,6 +1814,320 @@ FULL.addEventListener('keydown', e => {
     if (last && !last.school && !last.text){ const sel = FULL.querySelector(`select[data-rschool="${mid}|${last.id}"]`); if (sel) sel.focus(); }
     else memoAddRow(mid);
   }
+});
+
+/* ===================== 셀 메모 (엑셀 메모처럼) ===================== */
+// 셀 메모는 점검 메모의 기록(행)에 cell 정보를 붙여 저장 → 두 곳이 항상 같은 내용
+const CTX_LABEL = { fin:'9월-최종 비교 · 최종값', sep:'9월-최종 비교 · 9월값', tocap:'TO 증감 · 정원 비교', tocur:'TO 증감 · 현원 비교' };
+const cmKey = c => [c.ctx, c.ek, c.label, c.s].join('|');
+function memoIndex(){
+  if (!memoIdx){ memoIdx = new Map(); state.memos.forEach(m => m.rows.forEach(r => { if (r.cell) memoIdx.set(cmKey(r.cell), { memo:m, row:r }); })); }
+  return memoIdx;
+}
+const findCellMemo = key => memoIndex().get(key) || null;
+function memoItemList(){
+  const list = [], add = t => { t = String(t || '').trim(); if (t && !list.includes(t)) list.push(t); };
+  (state.memoItems || []).forEach(add); state.memos.forEach(m => add(m.title));
+  return list;
+}
+function memoEditorHtml(cell){
+  const cur = findCellMemo(cmKey(cell));
+  const item = cur ? cur.memo.title : (ui.lastMemoItem || '');
+  const items = memoItemList();
+  return `<div class="memo-ed">
+    <div class="me-h"><span class="me-ic"></span>셀 메모 <small>${esc(CTX_LABEL[cell.ctx])}</small></div>
+    <label class="pn-l" for="cmItem">항목</label>
+    <input id="cmItem" list="cmItems" value="${esc(item)}" placeholder="항목 입력 또는 목록에서 선택" autocomplete="off">
+    <datalist id="cmItems">${items.map(t => `<option value="${esc(t)}">`).join('')}</datalist>
+    ${items.length ? `<div class="me-chips">${items.slice(0, 10).map(t => `<button type="button" class="me-chip${t === item ? ' on' : ''}" data-cmitem="${esc(t)}">${esc(t)}</button>`).join('')}</div>` : ''}
+    <label class="pn-l" for="cmText">내용</label>
+    <textarea id="cmText" rows="3" placeholder="이 칸에 대한 메모">${esc(cur ? cur.row.text : '')}</textarea>
+    <div class="row"><button class="btn primary" id="cmSave">메모 저장</button>${cur ? '<button class="btn danger" id="cmDel">메모 삭제</button>' : ''}</div>
+    <div class="pn-time">${cur ? `저장 ${fmtTime(cur.row.updatedAt || cur.row.createdAt)} · ` : ''}점검 메모 탭의 ‘항목’ 아래 학교별로 자동 기록됩니다.</div>
+  </div>`;
+}
+function detachRow(memo, row){
+  memo.rows = memo.rows.filter(r => r !== row);
+  if (memo.auto && !memo.rows.length) state.memos = state.memos.filter(m => m !== memo);
+}
+function saveCellMemo(cell, item, text){
+  item = String(item || '').trim(); text = String(text || '').trim();
+  if (!item){ alert('항목을 입력하거나 목록에서 고르세요.'); return false; }
+  if (!text){ alert('메모 내용을 입력하세요.'); return false; }
+  const cur = findCellMemo(cmKey(cell)), now = new Date().toISOString();
+  let target = state.memos.find(m => String(m.title || '').trim() === item);
+  if (cur && cur.memo === target){ cur.row.text = text; cur.row.updatedAt = now; }
+  else {
+    if (cur) detachRow(cur.memo, cur.row);
+    if (!target){ target = { id:uid(), title:item, rows:[], auto:true, createdAt:now }; state.memos.push(target); }
+    target.rows.push({ id:uid(), school:cell.ent, text, cell:{ ctx:cell.ctx, ek:cell.ek, label:cell.label, s:cell.s }, createdAt: cur ? cur.row.createdAt : now, updatedAt:now });
+  }
+  state.memoItems = [item, ...(state.memoItems || []).filter(t => t !== item)].slice(0, 60);
+  ui.lastMemoItem = item;
+  persist(); return true;
+}
+function deleteCellMemo(cell){
+  const cur = findCellMemo(cmKey(cell)); if (!cur) return false;
+  if (!confirm('이 칸의 메모를 삭제할까요?\n(점검 메모 탭의 해당 기록도 함께 삭제됩니다)')) return false;
+  detachRow(cur.memo, cur.row); persist(); return true;
+}
+function memoEditorClick(e, cell, after){
+  const chip = e.target.closest('[data-cmitem]');
+  if (chip){
+    const inp = $('#cmItem'); if (inp) inp.value = chip.dataset.cmitem;
+    document.querySelectorAll('.me-chip').forEach(c => c.classList.toggle('on', c === chip));
+    const ta = $('#cmText'); if (ta) ta.focus();
+    return true;
+  }
+  if (e.target.id === 'cmSave'){ if (saveCellMemo(cell, $('#cmItem').value, $('#cmText').value)) after(); return true; }
+  if (e.target.id === 'cmDel'){ if (deleteCellMemo(cell)) after(); return true; }
+  return !!e.target.closest('.memo-ed');
+}
+// 마우스를 올리면 메모 내용 표시
+const memoTip = document.createElement('div'); memoTip.id = 'memoTip'; memoTip.hidden = true; document.body.appendChild(memoTip);
+document.addEventListener('mouseover', e => {
+  const el = e.target.closest && e.target.closest('[data-mk]');
+  const cur = el && findCellMemo(el.dataset.mk);
+  if (!cur){ memoTip.hidden = true; return; }
+  memoTip.innerHTML = `<div class="mt-h">${esc(cur.memo.title || '(항목 없음)')}</div><div class="mt-b">${esc(cur.row.text || '')}</div><div class="mt-f">${esc(cur.row.school)} · ${esc(cur.row.cell.label)} · ${esc(cur.row.cell.s)} · ${fmtTime(cur.row.updatedAt || cur.row.createdAt)}</div>`;
+  memoTip.hidden = false;
+  const r = el.getBoundingClientRect(), w = memoTip.offsetWidth, h = memoTip.offsetHeight;
+  let x = r.right + 8, y = r.top;
+  if (x + w > innerWidth - 8) x = Math.max(8, r.left - w - 8);
+  if (y + h > innerHeight - 8) y = Math.max(8, innerHeight - h - 8);
+  memoTip.style.left = x + 'px'; memoTip.style.top = y + 'px';
+});
+document.addEventListener('scroll', () => { memoTip.hidden = true; }, true);
+function jumpToCell(c){
+  const sel = c.ek.startsWith('A:') ? { type:'agg', id:c.ek.slice(2) } : { type:'school', id:c.ek.slice(2) };
+  if (c.ctx === 'fin' || c.ctx === 'sep'){
+    ui.tab = 'cmp'; ui.sel = sel; ui.lastEnt = c.ek; ui.cmpMode = c.ctx; ui.cell = { label:c.label, s:c.s };
+    renderView(); scrollToSel();
+  } else {
+    ui.tab = 'to'; ui.toType = c.ctx === 'tocap' ? 'cap' : 'cur'; ui.toView = 'school'; ui.toScope = 'all'; ui.toChangedOnly = false; ui.toQ = '';
+    ui.toCell = { ek:c.ek, s:c.s };
+    renderView(); const td = FULL.querySelector('td.csel'); if (td) td.scrollIntoView({ block:'center', inline:'center' });
+  }
+}
+
+/* ===================== TO 증감 탭 (최종 교원조직 예정표 기준) ===================== */
+const TO_DEF = {
+  cap:{ label:'정원 비교', ctx:'tocap', bLabel:'당해년도정원', bShort:'당해 정원', key:'기준정원−당해정원', desc:'기준년도 정원 − 당해년도 정원' },
+  cur:{ label:'현원 비교', ctx:'tocur', bLabel:'당해년도현원', bShort:'당해 현원', key:'기준정원−당해현원', desc:'기준년도 정원 − 당해년도 현원' } };
+const TO_SCOPE = { all:'전체', M:'중학교', H:'고등학교' };
+Object.assign(ui, { toType:'cap', toView:'school', toScope:'all', toChangedOnly:true, toCell:null, toQ:'' });
+function toRowOf(e, D){
+  const rec = getRec(e.sel, 'fin'); if (!rec) return null;
+  const fm = recMaps(rec);
+  const find = name => { const l = fm.order.find(x => nospace(x) === name); return l ? fm.rows.get(l) : null; };
+  const A = find('기준년도정원'), B = find(D.bLabel);
+  const cells = new Map(); let up = 0, down = 0, nUp = 0, nDown = 0;
+  fm.subs.forEach(s => {
+    const a = A ? A.get(s) : null, b = B ? B.get(s) : null;
+    const d = typeof nz(a) === 'number' && typeof nz(b) === 'number' ? nz(a) - nz(b) : 0;
+    cells.set(s, { a, b, d });
+    if (d > 0){ up += d; nUp++; } else if (d < 0){ down += d; nDown++; }
+  });
+  return { e, ek:entKey(e.sel), subs:fm.subs, cells, up, down, net:up + down, nUp, nDown, noRow:!A || !B };
+}
+function toData(type, scope = ui.toScope){
+  const D = TO_DEF[type], rows = [], missing = [], subs = [];
+  for (const e of allEntities()){
+    if (e.level === 'T' || (scope !== 'all' && e.level !== scope)) continue;
+    let r = null; try { r = toRowOf(e, D); } catch(err){ r = null; }
+    if (!r){ missing.push(e.name); continue; }
+    r.subs.forEach(s => { if (!subs.includes(s)) subs.push(s); });
+    rows.push(r);
+  }
+  const aggId = scope === 'M' ? 'ALL_M' : scope === 'H' ? 'ALL_H' : 'ALL';
+  let agg = null; try { agg = toRowOf({ sel:{ type:'agg', id:aggId }, name:AGG[aggId], level:'T' }, D); } catch(err){}
+  return { D, type, scope, rows, missing, subs, agg, aggName:AGG[aggId] };
+}
+const dOf = (r, s) => (r.cells.get(s) || { d:0 }).d;
+function toList(T){
+  const out = [];
+  T.rows.forEach(r => T.subs.forEach(s => { const c = r.cells.get(s); if (c && c.d) out.push({ r, s, c }); }));
+  return out;
+}
+function toMemoKey(T, ek, s){ return cmKey({ ctx:T.D.ctx, ek, label:T.D.key, s }); }
+function toMemoAttr(T, ek, s){ const k = toMemoKey(T, ek, s); return findCellMemo(k) ? { cls:' has-memo', attr:` data-mk="${esc(k)}"` } : { cls:'', attr:'' }; }
+function toCellInfo(){
+  const D = TO_DEF[ui.toType], e = allEntities().find(x => entKey(x.sel) === ui.toCell.ek);
+  return { ctx:D.ctx, ek:ui.toCell.ek, label:D.key, s:ui.toCell.s, ent:e ? e.name : ui.toCell.ek.slice(2) };
+}
+
+function toSchoolView(T){
+  const q = ui.toQ.trim();
+  const shown = T.rows.filter(r => (!ui.toChangedOnly || r.up || r.down) && (!q || r.e.name.includes(q)));
+  const cols = T.subs.filter(s => shown.some(r => dOf(r, s)));
+  if (!shown.length) return `<div class="empty">${T.rows.length ? '조건에 맞는 학교가 없습니다.' : '최종 교원조직 예정표 학교 파일이 없습니다.'}</div>`;
+  if (!cols.length) return `<div class="empty">TO 증감이 있는 교과가 없습니다.</div>`;
+  const C = ui.toCell;
+  const sumCells = list => cols.map(s => { const v = list.reduce((a, r) => a + dOf(r, s), 0); return `<td class="${v > 0 ? 'up' : v < 0 ? 'dn' : ''}">${v ? signed(v) : ''}</td>`; }).join('');
+  const tail = list => { const u = list.reduce((a, r) => a + r.up, 0), d = list.reduce((a, r) => a + r.down, 0);
+    return `<td class="sm up-t">${u ? '+' + u : ''}</td><td class="sm dn-t">${d || ''}</td><td class="sm">${u + d ? signed(u + d) : '0'}</td>`; };
+  let h = `<div class="to-scroll"><table class="tm"><thead><tr><th class="sch">학교</th>${cols.map(s => `<th>${esc(s)}</th>`).join('')}<th>TO 증</th><th>TO 감</th><th>순증감</th></tr></thead><tbody>`;
+  for (const lv of ['M','H','E']){
+    const list = shown.filter(r => r.e.level === lv); if (!list.length) continue;
+    h += `<tr class="sec"><td colspan="${cols.length + 4}">${LEVELS[lv]} (${list.length}교)</td></tr>`;
+    for (const r of list){
+      h += `<tr><th class="sch" title="${esc(r.e.name)}">${esc(r.e.name)}</th>`;
+      h += cols.map(s => { const d = dOf(r, s), m = toMemoAttr(T, r.ek, s), sel = C && C.ek === r.ek && C.s === s;
+        return `<td class="to${d > 0 ? ' up' : d < 0 ? ' dn' : ''}${sel ? ' csel' : ''}${m.cls}" data-ek="${esc(r.ek)}" data-s="${esc(s)}"${m.attr}>${d ? signed(d) : ''}</td>`; }).join('');
+      h += `<td class="sm up-t">${r.up ? '+' + r.up : ''}</td><td class="sm dn-t">${r.down || ''}</td><td class="sm">${r.net ? signed(r.net) : '0'}</td></tr>`;
+    }
+    h += `<tr class="sub"><th class="sch">${LEVELS[lv]} 합계</th>${sumCells(list)}${tail(list)}</tr>`;
+  }
+  if (shown.length) h += `<tr class="sub"><th class="sch">표시된 학교 합계</th>${sumCells(shown)}${tail(shown)}</tr>`;
+  if (T.agg && !q && !ui.toChangedOnly) h += `<tr class="agg"><th class="sch" title="업로드한 전체 파일로 계산">${esc(T.aggName)} 파일</th>${sumCells([T.agg])}${tail([T.agg])}</tr>`;
+  return h + `</tbody></table></div>`;
+}
+function toSubjectView(T){
+  const q = ui.toQ.trim(), C = ui.toCell;
+  const subs = T.subs.filter(s => T.rows.some(r => dOf(r, s)) && (!q || s.includes(q) || T.rows.some(r => dOf(r, s) && r.e.name.includes(q))));
+  if (!subs.length) return `<div class="empty">TO 증감이 있는 교과가 없습니다.</div>`;
+  const chip = (r, s) => { const d = dOf(r, s), m = toMemoAttr(T, r.ek, s), sel = C && C.ek === r.ek && C.s === s;
+    return `<button class="tchip ${d > 0 ? 'up' : 'dn'}${sel ? ' csel' : ''}${m.cls}" data-ek="${esc(r.ek)}" data-s="${esc(s)}"${m.attr}>${esc(r.e.name)} ${signed(d)}</button>`; };
+  let h = `<div class="to-scroll"><table class="ul"><thead><tr><th style="width:110px">교과</th><th style="width:60px;text-align:right">TO 증</th><th style="width:60px;text-align:right">TO 감</th><th style="width:60px;text-align:right">순증감</th><th>TO 증 학교</th><th>TO 감 학교</th></tr></thead><tbody>`;
+  for (const s of subs){
+    const ups = T.rows.filter(r => dOf(r, s) > 0), dns = T.rows.filter(r => dOf(r, s) < 0);
+    const u = ups.reduce((a, r) => a + dOf(r, s), 0), d = dns.reduce((a, r) => a + dOf(r, s), 0);
+    h += `<tr><td><b>${esc(s)}</b></td><td class="n" style="color:#1d4ed8;font-weight:700">${u ? '+' + u : ''}<small style="color:var(--muted);font-weight:400"> ${ups.length ? ups.length + '교' : ''}</small></td>
+      <td class="n" style="color:#b91c1c;font-weight:700">${d || ''}<small style="color:var(--muted);font-weight:400"> ${dns.length ? dns.length + '교' : ''}</small></td>
+      <td class="n" style="font-weight:700">${u + d ? signed(u + d) : '0'}</td><td>${ups.map(r => chip(r, s)).join('')}</td><td>${dns.map(r => chip(r, s)).join('')}</td></tr>`;
+  }
+  return h + `</tbody></table></div>`;
+}
+function toUpDownView(T){
+  const q = ui.toQ.trim(), C = ui.toCell;
+  const list = toList(T).filter(x => !q || x.r.e.name.includes(q) || x.s.includes(q));
+  const box = (kind, items) => {
+    const sum = items.reduce((a, x) => a + x.c.d, 0);
+    return `<div class="udbox ${kind}"><h3>${kind === 'up' ? 'TO 증' : 'TO 감'} <span class="pill">${items.length}건</span><span class="pill">${sum ? signed(sum) : 0}명</span></h3>
+      <div class="to-scroll" style="border:none;border-radius:0"><table class="ul"><thead><tr><th style="width:60px">학교급</th><th>학교</th><th>교과</th><th style="text-align:right">기준 정원</th><th style="text-align:right">${T.D.bShort}</th><th style="text-align:right">${kind === 'up' ? '증' : '감'}</th></tr></thead><tbody>
+      ${items.map(x => { const m = toMemoAttr(T, x.r.ek, x.s), sel = C && C.ek === x.r.ek && C.s === x.s;
+        return `<tr data-ek="${esc(x.r.ek)}" data-s="${esc(x.s)}" class="${sel ? 'csel' : ''}"><td>${LEVELS[x.r.e.level]}</td><td>${esc(x.r.e.name)}</td><td>${esc(x.s)}</td>
+          <td class="n">${fmt(x.c.a) || 0}</td><td class="n">${fmt(x.c.b) || 0}</td><td class="n${m.cls}"${m.attr} style="font-weight:700;color:${kind === 'up' ? '#1d4ed8' : '#b91c1c'}">${signed(x.c.d)}</td></tr>`; }).join('')
+        || `<tr><td colspan="6" style="color:var(--muted);padding:14px">없음</td></tr>`}</tbody></table></div></div>`;
+  };
+  return `<div class="ud">${box('up', list.filter(x => x.c.d > 0))}${box('dn', list.filter(x => x.c.d < 0))}</div>`;
+}
+function toPanelHtml(T){
+  const C = ui.toCell, D = T.D;
+  if (!C) return `<div class="pn-empty">칸(또는 학교·교과)을 누르면 여기에 기준 정원과 ${D.bShort} 비교가 나오고, 메모를 남길 수 있습니다.</div>`;
+  let r = T.rows.find(x => x.ek === C.ek);
+  if (!r){ const e = allEntities().find(x => entKey(x.sel) === C.ek); r = e ? toRowOf(e, D) : null; }
+  if (!r) return `<div class="pn-empty">선택한 학교의 최종 자료가 없습니다.</div>`;
+  const c = r.cells.get(C.s) || { a:null, b:null, d:0 };
+  const res = c.d > 0 ? `<div class="pn-delta" style="background:#dbeafe;color:#1d4ed8">TO 증 ${signed(c.d)}</div>` : c.d < 0 ? `<div class="pn-delta" style="background:#fee2e2;color:#b91c1c">TO 감 ${c.d}</div>` : `<div class="pn-delta">변동 없음</div>`;
+  let h = `<div class="pn-head"><div class="pn-t">${esc(C.s)}</div><div class="pn-sub">${esc(r.e.name)} · ${D.label} (${D.desc})</div></div>
+    <div class="pn-vals"><div class="v fin"><span>기준년도 정원</span><b>${fmt(c.a) || 0}</b></div><div class="arrow">−</div><div class="v" style="background:#f3f4f6"><span>${D.bShort}</span><b>${fmt(c.b) || 0}</b></div></div>${res}`;
+  h += memoEditorHtml(toCellInfo());
+  const own = r.subs.filter(s => dOf(r, s));
+  h += `<div class="pn-list"><div class="pn-lh">${esc(r.e.name)} TO 증감 (${own.length})</div>${own.map(s => { const d = dOf(r, s);
+    return `<button class="pl ${d > 0 ? 'pass' : 'diff'}${s === C.s ? ' cur' : ''}" data-ek="${esc(r.ek)}" data-s="${esc(s)}"><span>${esc(s)}</span><b>${signed(d)}</b></button>`; }).join('') || '<div class="pn-empty">변동 없음</div>'}</div>`;
+  return h;
+}
+function renderTO(){
+  const sx = $('#tab-full .to-scroll') ? $('#tab-full .to-scroll').scrollLeft : 0, sy = FULL.scrollTop;
+  const T = toData(ui.toType), D = T.D;
+  const up = T.rows.reduce((a, r) => a + r.up, 0), dn = T.rows.reduce((a, r) => a + r.down, 0);
+  const nUp = T.rows.reduce((a, r) => a + r.nUp, 0), nDn = T.rows.reduce((a, r) => a + r.nDown, 0);
+  const memoN = [...memoIndex().values()].filter(x => x.row.cell.ctx === D.ctx).length;
+  const seg = (attr, cur, opts) => `<div class="seg">${opts.map(([k, v]) => `<button ${attr}="${k}" class="${cur === k ? 'on' : ''}">${v}</button>`).join('')}</div>`;
+  const body = ui.toView === 'school' ? toSchoolView(T) : ui.toView === 'subject' ? toSubjectView(T) : toUpDownView(T);
+  FULL.innerHTML = `<div class="full-in"><h2 class="tt">TO 증감 <span class="pill">최종 교원조직 예정표 기준</span></h2>
+    <div class="toolbar">
+      ${seg('data-tot', ui.toType, [['cap','정원 비교'],['cur','현원 비교']])}
+      ${seg('data-tov', ui.toView, [['school','학교별'],['subject','교과별'],['updown','증·감별']])}
+      ${seg('data-tos', ui.toScope, Object.entries(TO_SCOPE))}
+      ${ui.toView === 'school' ? `<label class="chk"><input type="checkbox" id="toChanged" ${ui.toChangedOnly ? 'checked' : ''}>TO 변동 있는 학교만</label>` : ''}
+      <input class="search2" id="toQ" placeholder="학교·교과 검색" value="${esc(ui.toQ)}">
+      <span style="flex:1"></span>
+      <span class="lg"><i class="sw up"></i>TO 증(+)<i class="sw dn"></i>TO 감(−)<i class="sw memo"></i>메모</span>
+      <button class="btn" id="toXlsx">엑셀</button><button class="btn" id="allXlsx">통합 엑셀</button><button class="btn primary" id="toPrint">인쇄</button></div>
+    <div class="to-wrap"><div class="to-main" id="printArea" data-fit="width">
+      <div class="ph"><h2 style="font-size:16px">TO 증감 — ${D.label} <span class="gtag fin">${TO_SCOPE[ui.toScope]}</span></h2>
+        <div class="meta"><span>계산 <b>${D.desc}</b></span><span>+ 는 <b style="color:#1d4ed8">TO 증</b>, − 는 <b style="color:#b91c1c">TO 감</b></span></div></div>
+      <div class="cards">
+        <div class="cardn" style="border-left-color:#3b82f6"><div class="k">TO 증</div><div class="n" style="color:#1d4ed8">${up ? '+' + up : 0}<small>${nUp}칸 · ${T.rows.filter(r => r.up).length}교</small></div></div>
+        <div class="cardn diff"><div class="k">TO 감</div><div class="n" style="color:#b91c1c">${dn || 0}<small>${nDn}칸 · ${T.rows.filter(r => r.down).length}교</small></div></div>
+        <div class="cardn ink"><div class="k">순증감 (학교 합)</div><div class="n">${up + dn ? signed(up + dn) : 0}<small>${T.rows.length}교</small></div></div>
+        <div class="cardn stale"><div class="k">${esc(T.aggName)} 파일 기준</div><div class="n">${T.agg ? `${T.agg.up ? '+' + T.agg.up : 0} / ${T.agg.down || 0}` : '-'}<small>${T.agg ? '증 / 감' : '파일 없음'}</small></div></div>
+        <div class="cardn pass"><div class="k">셀 메모 (${D.label})</div><div class="n">${memoN}</div></div></div>
+      ${body}
+      ${T.missing.length ? `<div class="foot">최종 자료가 없어 제외: ${esc(T.missing.join(', '))}</div>` : ''}
+      <div class="foot">칸을 누르면 오른쪽에서 메모를 남길 수 있습니다. 메모가 있는 칸은 오른쪽 위에 빨간 삼각형이 표시되고, 마우스를 올리면 내용이 보입니다.</div>
+    </div><aside class="cmp-panel">${toPanelHtml(T)}</aside></div></div>`;
+  const sc = $('#tab-full .to-scroll'); if (sc) sc.scrollLeft = sx; FULL.scrollTop = sy;
+}
+function toMatrixSheet(T){
+  const cols = T.subs.filter(s => T.rows.some(r => dOf(r, s)));
+  const aoa = [[`TO 증감 — ${T.D.label} (${T.D.desc}) · ${TO_SCOPE[T.scope]}`], [], ['학교급','학교', ...cols, 'TO 증','TO 감','순증감']];
+  const line = (lv, name, list) => { const u = list.reduce((a, r) => a + r.up, 0), d = list.reduce((a, r) => a + r.down, 0);
+    return [lv, name, ...cols.map(s => list.reduce((a, r) => a + dOf(r, s), 0) || ''), u || '', d || '', u + d]; };
+  for (const lv of ['M','H','E']){
+    const list = T.rows.filter(r => r.e.level === lv); if (!list.length) continue;
+    list.forEach(r => aoa.push(line(LEVELS[lv], r.e.name, [r])));
+    aoa.push(line(LEVELS[lv], `${LEVELS[lv]} 합계`, list));
+  }
+  aoa.push(line('', '전체 학교 합계', T.rows));
+  if (T.agg) aoa.push(line('', `${T.aggName} 파일`, [T.agg]));
+  const ws = XLSX.utils.aoa_to_sheet(aoa); ws['!cols'] = [{wch:8},{wch:18}, ...cols.map(() => ({wch:6})), {wch:7},{wch:7},{wch:7}];
+  return ws;
+}
+function toSubjectSheet(T){
+  const aoa = [[`TO 증감 교과별 — ${T.D.label} · ${TO_SCOPE[T.scope]}`], [], ['교과','TO 증','증 학교 수','TO 감','감 학교 수','순증감','TO 증 학교','TO 감 학교']];
+  T.subs.filter(s => T.rows.some(r => dOf(r, s))).forEach(s => {
+    const ups = T.rows.filter(r => dOf(r, s) > 0), dns = T.rows.filter(r => dOf(r, s) < 0);
+    const u = ups.reduce((a, r) => a + dOf(r, s), 0), d = dns.reduce((a, r) => a + dOf(r, s), 0);
+    aoa.push([s, u || '', ups.length || '', d || '', dns.length || '', u + d, ups.map(r => `${r.e.name}(+${dOf(r, s)})`).join(', '), dns.map(r => `${r.e.name}(${dOf(r, s)})`).join(', ')]);
+  });
+  const ws = XLSX.utils.aoa_to_sheet(aoa); ws['!cols'] = [{wch:12},{wch:7},{wch:9},{wch:7},{wch:9},{wch:7},{wch:50},{wch:50}];
+  return ws;
+}
+function toListSheet(T){
+  const aoa = [['구분','학교급','학교','교과','기준년도 정원', T.D.bShort, '증감','메모 항목','메모']];
+  toList(T).sort((a, b) => (b.c.d > 0) - (a.c.d > 0)).forEach(x => {
+    const m = findCellMemo(toMemoKey(T, x.r.ek, x.s));
+    aoa.push([x.c.d > 0 ? 'TO 증' : 'TO 감', LEVELS[x.r.e.level], x.r.e.name, x.s, nz(x.c.a), nz(x.c.b), x.c.d, m ? m.memo.title : '', m ? m.row.text : '']);
+  });
+  if (aoa.length === 1) aoa.push(['(TO 증감 없음)']);
+  const ws = XLSX.utils.aoa_to_sheet(aoa); ws['!cols'] = [{wch:7},{wch:8},{wch:18},{wch:12},{wch:10},{wch:10},{wch:6},{wch:18},{wch:50}];
+  return ws;
+}
+function toExcel(){
+  const wb = XLSX.utils.book_new();
+  for (const type of ['cap','cur']){
+    const T = toData(type), tag = TO_DEF[type].label.replace(' 비교', '');
+    XLSX.utils.book_append_sheet(wb, toMatrixSheet(T), `학교별(${tag})`);
+    XLSX.utils.book_append_sheet(wb, toSubjectSheet(T), `교과별(${tag})`);
+    XLSX.utils.book_append_sheet(wb, toListSheet(T), `증감 목록(${tag})`);
+  }
+  saveBook(wb, `TO증감_${TO_SCOPE[ui.toScope]}.xlsx`);
+}
+FULL.addEventListener('click', e => {
+  if (ui.tab !== 'to') return;
+  const t = e.target;
+  const b = t.closest('[data-tot],[data-tov],[data-tos]');
+  if (b){
+    if (b.dataset.tot) ui.toType = b.dataset.tot;
+    if (b.dataset.tov) ui.toView = b.dataset.tov;
+    if (b.dataset.tos) ui.toScope = b.dataset.tos;
+    renderTO(); return;
+  }
+  if (ui.toCell && t.closest('.memo-ed')){ memoEditorClick(e, toCellInfo(), renderTO); return; }
+  const c = t.closest('[data-ek][data-s]');
+  if (c){ ui.toCell = { ek:c.dataset.ek, s:c.dataset.s }; renderTO(); return; }
+  if (t.id === 'toXlsx') return toExcel();
+  if (t.id === 'toPrint') return doPrint();
+});
+FULL.addEventListener('change', e => { if (ui.tab === 'to' && e.target.id === 'toChanged'){ ui.toChangedOnly = e.target.checked; renderTO(); } });
+let toTimer = null;
+FULL.addEventListener('input', e => {
+  if (ui.tab !== 'to' || e.target.id !== 'toQ') return;
+  clearTimeout(toTimer);
+  toTimer = setTimeout(() => { const pos = e.target.selectionStart; ui.toQ = e.target.value; renderTO(); const n = $('#toQ'); if (n){ n.focus(); n.setSelectionRange(pos, pos); } }, 250);
 });
 
 /* ===================== 비교 재실행 · 알림 · 실시간 동기화 ===================== */
