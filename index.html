@@ -376,6 +376,13 @@ table.ul td.n{text-align:right;font-variant-numeric:tabular-nums}
 table.ul tr[data-ek]{cursor:pointer} table.ul tr[data-ek]:hover td{background:#f0f6ff}
 table.ul tr.csel td{background:#e5e7eb}
 .to-desc{color:var(--muted);font-size:12.5px;margin:-4px 0 10px}
+.btn.on-ex{border-color:#f59e0b;background:#fffbeb;color:#92400e;font-weight:700}
+.to-ex{background:var(--surface);border:1px solid #fcd34d;border-radius:10px;padding:10px 12px;margin-bottom:10px}
+.to-ex .exh{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;font-size:13px}
+.to-ex .exh b{margin-right:4px}
+.to-ex .exg{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:4px}
+.to-ex label{display:flex;align-items:center;gap:5px;font-size:12.5px;padding:3px 6px;border:1px solid var(--line2);border-radius:6px;cursor:pointer}
+.to-ex label.on{background:#fef3c7;border-color:#fcd34d;color:#92400e;font-weight:700;text-decoration:line-through}
 .to-desc b{color:var(--ink)}
 .sw.up{background:#dbeafe;border-color:#93c5fd} .sw.dn{background:#fee2e2;border-color:#fca5a5}
 .sw.memo{width:0;height:0;border-style:solid;border-width:0 10px 10px 0;border-color:transparent #e11d48 transparent transparent;border-radius:0;background:none}
@@ -464,7 +471,7 @@ const LEVELS = { M:'중학교', H:'고등학교', E:'기타' };
 const KEY_ROWS = ['당해년도정원','당해년도현원','기준년도정원'];
 const BREAK_BEFORE = ['과부족인원','정원외기간제','차기년도정원'];
 
-const blank = () => ({ app:APP_ID, version:1, groups:{ fin:{files:{}}, sep:{files:{}} }, schoolMeta:{}, subjectAlias:{}, reviews:{}, classNotes:{}, memos:[], memoItems:[], updatedAt:null });
+const blank = () => ({ app:APP_ID, version:1, groups:{ fin:{files:{}}, sep:{files:{}} }, schoolMeta:{}, subjectAlias:{}, reviews:{}, classNotes:{}, memos:[], memoItems:[], toExclude:[], updatedAt:null });
 let state = blank();
 const ui = { mode:'view', tab:'plan', sel:null, group:'fin', showAll:false, logs:{fin:[],sep:[]},
              cmpMode:'delta', cell:null, lastEnt:null, memoQ:'',  passGroup:'item', passFilter:'pass', passQ:'', clsFilter:'all', clsQ:'' };
@@ -524,6 +531,7 @@ function normalize(o){
   s.classNotes = o.classNotes || {};
   s.memos = Array.isArray(o.memos) ? o.memos : [];
   s.memoItems = Array.isArray(o.memoItems) ? o.memoItems : [];
+  s.toExclude = Array.isArray(o.toExclude) ? o.toExclude : [];
   s.updatedAt = o.updatedAt || null;
   return s;
 }
@@ -1922,26 +1930,28 @@ function toRowOf(e, D){
   const find = name => { const l = fm.order.find(x => nospace(x) === name); return l ? fm.rows.get(l) : null; };
   const A = find('기준년도정원'), B = find(D.bLabel);
   const cells = new Map(); let up = 0, down = 0, nUp = 0, nDown = 0;
-  fm.subs.forEach(s => {
+  const ex = new Set(state.toExclude || []), subs = fm.subs.filter(s => !ex.has(s));   // 제외 교과는 계산에서 뺌
+  subs.forEach(s => {
     const a = A ? A.get(s) : null, b = B ? B.get(s) : null;
     const d = typeof nz(a) === 'number' && typeof nz(b) === 'number' ? nz(a) - nz(b) : 0;
     cells.set(s, { a, b, d });
     if (d > 0){ up += d; nUp++; } else if (d < 0){ down += d; nDown++; }
   });
-  return { e, ek:entKey(e.sel), subs:fm.subs, cells, up, down, net:up + down, nUp, nDown, noRow:!A || !B };
+  return { e, ek:entKey(e.sel), subs, allSubs:fm.subs, cells, up, down, net:up + down, nUp, nDown, noRow:!A || !B };
 }
 function toData(type, scope = ui.toScope){
-  const D = TO_DEF[type], rows = [], missing = [], subs = [];
+  const D = TO_DEF[type], rows = [], missing = [], subs = [], allSubs = [];
   for (const e of allEntities()){
     if (e.level === 'T' || (scope !== 'all' && e.level !== scope)) continue;
     let r = null; try { r = toRowOf(e, D); } catch(err){ r = null; }
     if (!r){ missing.push(e.name); continue; }
     r.subs.forEach(s => { if (!subs.includes(s)) subs.push(s); });
+    r.allSubs.forEach(s => { if (!allSubs.includes(s)) allSubs.push(s); });
     rows.push(r);
   }
   const aggId = scope === 'M' ? 'ALL_M' : scope === 'H' ? 'ALL_H' : 'ALL';
   let agg = null; try { agg = toRowOf({ sel:{ type:'agg', id:aggId }, name:AGG[aggId], level:'T' }, D); } catch(err){}
-  return { D, type, scope, rows, missing, subs, agg, aggName:AGG[aggId] };
+  return { D, type, scope, rows, missing, subs, allSubs, agg, aggName:AGG[aggId] };
 }
 const dOf = (r, s) => (r.cells.get(s) || { d:0 }).d;
 function toList(T){
@@ -2012,6 +2022,14 @@ function toUpDownView(T){
   };
   return `<div class="ud">${box('up', list.filter(x => x.c.d > 0))}${box('dn', list.filter(x => x.c.d < 0))}</div>`;
 }
+function toExPanel(T){
+  const ex = state.toExclude || [];
+  const list = [...T.allSubs, ...ex.filter(s => !T.allSubs.includes(s))];
+  return `<div class="to-ex"><div class="exh"><b>TO 증감에서 제외할 교과</b><span class="lg">체크한 교과는 TO 증·감 계산, 합계, 엑셀에서 빠집니다. (정원·현원 비교 공통, 자동 저장)</span>
+      <span style="flex:1"></span>
+      <button class="btn" data-exq="head">교장·교감 제외</button><button class="btn" data-exq="none">모두 해제</button><button class="btn" id="toExBtn">닫기</button></div>
+    <div class="exg">${list.map(s => `<label class="${ex.includes(s) ? 'on' : ''}"><input type="checkbox" data-ex="${esc(s)}" ${ex.includes(s) ? 'checked' : ''}>${esc(s)}</label>`).join('') || '<span class="lg">최종 자료를 올리면 교과 목록이 나타납니다.</span>'}</div></div>`;
+}
 function toPanelHtml(T){
   const C = ui.toCell, D = T.D;
   if (!C) return `<div class="pn-empty">칸(또는 학교·교과)을 누르면 여기에 기준 정원과 ${D.bShort} 비교가 나오고, 메모를 남길 수 있습니다.</div>`;
@@ -2041,14 +2059,15 @@ function renderTO(){
       ${seg('data-tot', ui.toType, [['cap','정원 비교'],['cur','현원 비교']])}
       ${seg('data-tov', ui.toView, [['school','학교별'],['subject','교과별'],['updown','증·감별']])}
       ${seg('data-tos', ui.toScope, Object.entries(TO_SCOPE))}
+      <button class="btn${(state.toExclude || []).length ? ' on-ex' : ''}" id="toExBtn" title="TO 증감 계산에서 뺄 교과 선택">제외 교과${(state.toExclude || []).length ? ` ${state.toExclude.length}` : ''} ${ui.toExOpen ? '▴' : '▾'}</button>
       ${ui.toView === 'school' ? `<label class="chk"><input type="checkbox" id="toChanged" ${ui.toChangedOnly ? 'checked' : ''}>TO 변동 있는 학교만</label>` : ''}
       <input class="search2" id="toQ" placeholder="학교·교과 검색" value="${esc(ui.toQ)}">
       <span style="flex:1"></span>
-      <span class="lg"><i class="sw up"></i>TO 증(+)<i class="sw dn"></i>TO 감(−)<i class="sw memo"></i>메모</span>
       <button class="btn" id="toXlsx">엑셀</button><button class="btn" id="allXlsx">통합 엑셀</button><button class="btn primary" id="toPrint">인쇄</button></div>
+    ${ui.toExOpen ? toExPanel(T) : ''}
     <div class="to-wrap"><div class="to-main" id="printArea" data-fit="width">
       <div class="ph"><h2 style="font-size:16px">TO 증감 — ${D.label} <span class="gtag fin">${TO_SCOPE[ui.toScope]}</span></h2>
-        <div class="meta"><span>계산 <b>${D.desc}</b></span><span>+ 는 <b style="color:#1d4ed8">TO 증</b>, − 는 <b style="color:#b91c1c">TO 감</b></span></div></div>
+        <div class="meta"><span>계산 <b>${D.desc}</b></span>${(state.toExclude || []).length ? `<span>제외 교과 <b style="color:#92400e">${esc(state.toExclude.join(', '))}</b></span>` : ''}<span class="lg"><i class="sw up" style="margin-left:0"></i>TO 증(+)<i class="sw dn"></i>TO 감(−)<i class="sw memo"></i>메모</span></div></div>
       <div class="cards">
         <div class="cardn" style="border-left-color:#3b82f6"><div class="k">TO 증</div><div class="n" style="color:#1d4ed8">${up ? '+' + up : 0}<small>${nUp}칸 · ${T.rows.filter(r => r.up).length}교</small></div></div>
         <div class="cardn diff"><div class="k">TO 감</div><div class="n" style="color:#b91c1c">${dn || 0}<small>${nDn}칸 · ${T.rows.filter(r => r.down).length}교</small></div></div>
@@ -2061,9 +2080,10 @@ function renderTO(){
     </div><aside class="cmp-panel">${toPanelHtml(T)}</aside></div></div>`;
   const sc = $('#tab-full .to-scroll'); if (sc) sc.scrollLeft = sx; FULL.scrollTop = sy;
 }
+function exNote(){ const ex = state.toExclude || []; return ex.length ? `제외 교과: ${ex.join(', ')}` : '제외 교과: 없음'; }
 function toMatrixSheet(T){
   const cols = T.subs.filter(s => T.rows.some(r => dOf(r, s)));
-  const aoa = [[`TO 증감 — ${T.D.label} (${T.D.desc}) · ${TO_SCOPE[T.scope]}`], [], ['학교급','학교', ...cols, 'TO 증','TO 감','순증감']];
+  const aoa = [[`TO 증감 — ${T.D.label} (${T.D.desc}) · ${TO_SCOPE[T.scope]}`], [exNote()], ['학교급','학교', ...cols, 'TO 증','TO 감','순증감']];
   const line = (lv, name, list) => { const u = list.reduce((a, r) => a + r.up, 0), d = list.reduce((a, r) => a + r.down, 0);
     return [lv, name, ...cols.map(s => list.reduce((a, r) => a + dOf(r, s), 0) || ''), u || '', d || '', u + d]; };
   for (const lv of ['M','H','E']){
@@ -2077,7 +2097,7 @@ function toMatrixSheet(T){
   return ws;
 }
 function toSubjectSheet(T){
-  const aoa = [[`TO 증감 교과별 — ${T.D.label} · ${TO_SCOPE[T.scope]}`], [], ['교과','TO 증','증 학교 수','TO 감','감 학교 수','순증감','TO 증 학교','TO 감 학교']];
+  const aoa = [[`TO 증감 교과별 — ${T.D.label} · ${TO_SCOPE[T.scope]}`], [exNote()], ['교과','TO 증','증 학교 수','TO 감','감 학교 수','순증감','TO 증 학교','TO 감 학교']];
   T.subs.filter(s => T.rows.some(r => dOf(r, s))).forEach(s => {
     const ups = T.rows.filter(r => dOf(r, s) > 0), dns = T.rows.filter(r => dOf(r, s) < 0);
     const u = ups.reduce((a, r) => a + dOf(r, s), 0), d = dns.reduce((a, r) => a + dOf(r, s), 0);
@@ -2093,6 +2113,7 @@ function toListSheet(T){
     aoa.push([x.c.d > 0 ? 'TO 증' : 'TO 감', LEVELS[x.r.e.level], x.r.e.name, x.s, nz(x.c.a), nz(x.c.b), x.c.d, m ? m.memo.title : '', m ? m.row.text : '']);
   });
   if (aoa.length === 1) aoa.push(['(TO 증감 없음)']);
+  if ((state.toExclude || []).length) aoa.push([], [exNote()]);
   const ws = XLSX.utils.aoa_to_sheet(aoa); ws['!cols'] = [{wch:7},{wch:8},{wch:18},{wch:12},{wch:10},{wch:10},{wch:6},{wch:18},{wch:50}];
   return ws;
 }
@@ -2120,9 +2141,24 @@ FULL.addEventListener('click', e => {
   const c = t.closest('[data-ek][data-s]');
   if (c){ ui.toCell = { ek:c.dataset.ek, s:c.dataset.s }; renderTO(); return; }
   if (t.id === 'toXlsx') return toExcel();
+  if (t.id === 'toExBtn'){ ui.toExOpen = !ui.toExOpen; renderTO(); return; }
+  const q = t.closest('[data-exq]');
+  if (q){
+    if (q.dataset.exq === 'none') state.toExclude = [];
+    else { const T = toData(ui.toType); const add = T.allSubs.filter(s => /^(교장|교감)$/.test(s.replace(/\s/g, ''))); state.toExclude = [...new Set([...(state.toExclude || []), ...add])]; }
+    persist(); renderTO(); return;
+  }
   if (t.id === 'toPrint') return doPrint();
 });
-FULL.addEventListener('change', e => { if (ui.tab === 'to' && e.target.id === 'toChanged'){ ui.toChangedOnly = e.target.checked; renderTO(); } });
+FULL.addEventListener('change', e => {
+  if (ui.tab !== 'to') return;
+  if (e.target.id === 'toChanged'){ ui.toChangedOnly = e.target.checked; renderTO(); return; }
+  if (e.target.dataset.ex != null){
+    const s = e.target.dataset.ex, ex = new Set(state.toExclude || []);
+    if (e.target.checked) ex.add(s); else ex.delete(s);
+    state.toExclude = [...ex]; persist(); renderTO();
+  }
+});
 let toTimer = null;
 FULL.addEventListener('input', e => {
   if (ui.tab !== 'to' || e.target.id !== 'toQ') return;
