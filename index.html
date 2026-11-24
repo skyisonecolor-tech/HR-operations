@@ -394,6 +394,53 @@ table.ul tr.csel td{background:#e5e7eb}
   table.tm td.up,table.tm td.dn,table.tm tr.sec td,table.tm tr.sub td,table.tm tr.sub th,.has-memo::after{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
 
+/* ---------- 학교별 수정사항 ---------- */
+.fx-wrap{display:flex;gap:14px;align-items:flex-start;max-width:1400px;margin:0 auto}
+.fx-side{width:240px;flex:none;background:var(--surface);border:1px solid var(--line);border-radius:12px;position:sticky;top:0;max-height:calc(100vh - 140px);display:flex;flex-direction:column}
+.fx-side .search{margin:10px 10px 4px;padding:7px 10px;border:1px solid var(--line);border-radius:8px}
+.fx-side .chk{margin:2px 12px 6px;font-size:12.5px}
+.fx-list{overflow:auto;padding-bottom:10px}
+.fx-item{display:flex;align-items:center;gap:6px;width:100%;text-align:left;border:none;background:none;padding:6px 12px 6px 16px;font-size:13.5px}
+.fx-item:hover{background:#f3f4f6}
+.fx-item.active{background:#111827;color:#fff}
+.fx-item .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fx-cnt{font-size:11px;font-weight:700;min-width:20px;height:18px;padding:0 6px;border-radius:9px;display:inline-grid;place-items:center;background:#e0e7ff;color:#3730a3}
+.fx-item.active .fx-cnt{background:#4f46e5;color:#fff}
+.fx-main{flex:1;min-width:0}
+.fx-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.fx-head h2{margin:0;font-size:20px}
+.fx-card{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+table.fx{width:100%;border-collapse:collapse;font-size:13px}
+table.fx th{background:#f8fafc;color:var(--muted);font-size:12px;text-align:left;padding:7px 10px;border-bottom:1px solid var(--line)}
+table.fx td{padding:6px 8px;border-bottom:1px solid var(--line2);vertical-align:top}
+table.fx td.no{width:44px;text-align:center;color:var(--muted);font-weight:700;padding-top:12px}
+table.fx input{width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:8px;font-weight:700}
+table.fx input.emp{border-color:#fcd34d;background:#fffbeb}
+table.fx textarea{width:100%;min-height:36px;border:1px solid var(--line);border-radius:8px;padding:6px 8px;font:inherit;font-size:13px;resize:vertical;overflow:hidden}
+table.fx input:focus,table.fx textarea:focus{outline:none;border-color:#111827}
+table.fx td.act{width:96px;white-space:nowrap;padding-top:9px}
+.fx-empty{padding:30px;text-align:center;color:var(--muted)}
+.fx-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.fx-bar .grp{display:flex;gap:6px;align-items:center;padding-left:10px;margin-left:4px;border-left:1px solid var(--line)}
+.fx-bar select{padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:#fff}
+/* 출력·PDF 문서 */
+.fdoc{page:fixpage;background:#fff;color:#111;font-family:"Malgun Gothic","맑은 고딕","Noto Sans KR","Noto Sans CJK KR",sans-serif;font-size:12.5px;line-height:1.55}
+.fd-head{border-bottom:2px solid #111;padding-bottom:8px;margin-bottom:12px}
+.fd-k{font-size:12px;color:#555;letter-spacing:.5px}
+.fd-t{font-size:22px;font-weight:700;margin-top:2px}
+.fd-m{font-size:12px;color:#555;margin-top:2px}
+table.fd-tb{width:100%;border-collapse:collapse;table-layout:fixed}
+table.fd-tb th,table.fd-tb td{border:1px solid #444;padding:6px 8px;vertical-align:top}
+table.fd-tb th{background:#eef0f3;font-weight:700;text-align:center;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+table.fd-tb td.c{text-align:center}
+table.fd-tb td.it{font-weight:700;background:#fafafa;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+table.fd-tb td.tx{white-space:pre-wrap;word-break:keep-all}
+table.fd-tb tr{break-inside:avoid;page-break-inside:avoid}
+.fd-none{padding:20px;text-align:center;color:#777;border:1px dashed #aaa}
+.fd-foot{margin-top:10px;font-size:11px;color:#666;text-align:right}
+@page fixpage{size:A4 portrait;margin:14mm}
+#batchPrint.portrait{width:182mm}
+
 /* ---------- 점검 메모 ---------- */
 .memo{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:12px;overflow:hidden}
 .memo-h{display:flex;align-items:center;gap:8px;padding:10px 12px;background:#f8fafc;border-bottom:1px solid var(--line)}
@@ -439,6 +486,7 @@ table.mt td.empty-row{color:var(--muted);text-align:center;padding:14px}
     <button class="tab" data-tab="cls">학급수 비교</button>
     <button class="tab" data-tab="to">TO 증감</button>
     <button class="tab" data-tab="memo">점검 메모</button>
+    <button class="tab" data-tab="fix">학교별 수정사항</button>
   </nav>
   <div class="full" id="tab-full" hidden></div>
   <div class="plan-layout" id="tab-plan">
@@ -471,7 +519,7 @@ const LEVELS = { M:'중학교', H:'고등학교', E:'기타' };
 const KEY_ROWS = ['당해년도정원','당해년도현원','기준년도정원'];
 const BREAK_BEFORE = ['과부족인원','정원외기간제','차기년도정원'];
 
-const blank = () => ({ app:APP_ID, version:1, groups:{ fin:{files:{}}, sep:{files:{}} }, schoolMeta:{}, subjectAlias:{}, reviews:{}, classNotes:{}, memos:[], memoItems:[], toExclude:[], updatedAt:null });
+const blank = () => ({ app:APP_ID, version:1, groups:{ fin:{files:{}}, sep:{files:{}} }, schoolMeta:{}, subjectAlias:{}, reviews:{}, classNotes:{}, memos:[], memoItems:[], toExclude:[], fixes:{}, fixItems:[], updatedAt:null });
 let state = blank();
 const ui = { mode:'view', tab:'plan', sel:null, group:'fin', showAll:false, logs:{fin:[],sep:[]},
              cmpMode:'delta', cell:null, lastEnt:null, memoQ:'',  passGroup:'item', passFilter:'pass', passQ:'', clsFilter:'all', clsQ:'' };
@@ -532,6 +580,8 @@ function normalize(o){
   s.memos = Array.isArray(o.memos) ? o.memos : [];
   s.memoItems = Array.isArray(o.memoItems) ? o.memoItems : [];
   s.toExclude = Array.isArray(o.toExclude) ? o.toExclude : [];
+  s.fixes = o.fixes && typeof o.fixes === 'object' ? o.fixes : {};
+  s.fixItems = Array.isArray(o.fixItems) ? o.fixItems : [];
   s.updatedAt = o.updatedAt || null;
   return s;
 }
@@ -1026,7 +1076,7 @@ function renderSettings(){
     <section class="card"><h2>5. 저장 · 불러오기 · 초기화</h2>
       <p class="hint">작업 내용은 이 브라우저에 자동 저장됩니다. 다른 컴퓨터에서 이어서 하려면 작업 파일(.json)로 저장해 가져가서 불러오세요.
       ${state.updatedAt ? `<br>마지막 변경: ${fmtTime(state.updatedAt)}` : ''}</p>
-      <div class="row"><button class="btn primary" id="btnSave">작업 파일 저장 (.json)</button><button class="btn" id="btnLoad">작업 파일 불러오기</button><button class="btn" id="setAllXlsx">통합 엑셀 다운로드 (메모·차이·학급수·TO증감)</button></div>
+      <div class="row"><button class="btn primary" id="btnSave">작업 파일 저장 (.json)</button><button class="btn" id="btnLoad">작업 파일 불러오기</button><button class="btn" id="setAllXlsx">통합 엑셀 다운로드 (메모·차이·학급수·TO증감·수정사항)</button></div>
       <div class="row"><button class="btn danger" data-reset="sep">9월 자료 초기화</button><button class="btn danger" data-reset="fin">최종 자료 초기화</button><button class="btn danger" data-reset="all">전체 초기화 (학교·교과 설정 포함)</button></div>
     </section></div>`;
 }
@@ -1152,6 +1202,7 @@ function renderView(){
   if (side){ $('#tab-full').innerHTML = ''; renderSidebar(); renderContent(); }
   else if (ui.tab === 'pass') renderPass();
   else if (ui.tab === 'to') renderTO();
+  else if (ui.tab === 'fix') renderFix();
   else if (ui.tab === 'cls') renderClass();
   else if (ui.tab === 'memo') renderMemo();
 }
@@ -1715,6 +1766,7 @@ function allExcel(){
   XLSX.utils.book_append_sheet(wb, clsSheet(cls), '학급수 비교');
   XLSX.utils.book_append_sheet(wb, toListSheet(toData('cap', 'all')), 'TO증감(정원)');
   XLSX.utils.book_append_sheet(wb, toListSheet(toData('cur', 'all')), 'TO증감(현원)');
+  XLSX.utils.book_append_sheet(wb, fixSheet(fixEntities('all')), '학교별 수정사항');
   const p = n => String(n).padStart(2,'0'), d = new Date();
   saveBook(wb, `교원조직예정표_점검결과_${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}.xlsx`);
 }
@@ -2164,6 +2216,191 @@ FULL.addEventListener('input', e => {
   if (ui.tab !== 'to' || e.target.id !== 'toQ') return;
   clearTimeout(toTimer);
   toTimer = setTimeout(() => { const pos = e.target.selectionStart; ui.toQ = e.target.value; renderTO(); const n = $('#toQ'); if (n){ n.focus(); n.setSelectionRange(pos, pos); } }, 250);
+});
+
+/* ===================== 학교별 수정사항 탭 ===================== */
+const PDF_LIB_URL = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+Object.assign(ui, { fixSel:null, fixOnly:false, fixQ:'', fixScope:'all' });
+const fixRows = ek => state.fixes[ek] || [];
+const filledFix = ek => fixRows(ek).filter(r => String(r.item || '').trim() || String(r.text || '').trim());
+// 목록: 업로드된 학교·전체 + (이름이 바뀌어) 목록에 없는 학교의 수정사항
+function fixAllEnts(){
+  const ents = allEntities().map(e => ({ ek:entKey(e.sel), name:e.name, level:e.level }));
+  const known = new Set(ents.map(e => e.ek));
+  Object.keys(state.fixes).filter(k => !known.has(k) && fixRows(k).length).forEach(k => ents.push({ ek:k, name:k.slice(2), level:'X' }));
+  return ents;
+}
+const FX_LEVEL = { T:'전체', M:'중학교', H:'고등학교', E:'기타', X:'목록에 없는 학교' };
+function fixEntities(scope){
+  return fixAllEnts().filter(e => filledFix(e.ek).length && (scope === 'all' || e.level === scope));
+}
+function fixItemList(){
+  const list = [], add = t => { t = String(t || '').trim(); if (t && !list.includes(t)) list.push(t); };
+  (state.fixItems || []).forEach(add); Object.values(state.fixes).forEach(rows => rows.forEach(r => add(r.item)));
+  return list;
+}
+function renderFix(){
+  const ents = fixAllEnts(), sy = FULL.scrollTop;
+  if (!ui.fixSel || !ents.some(e => e.ek === ui.fixSel)){
+    const withFix = ents.find(e => filledFix(e.ek).length);
+    ui.fixSel = withFix ? withFix.ek : (ents.find(e => e.level !== 'T') || ents[0] || {}).ek || null;
+  }
+  const q = ui.fixQ.trim();
+  let side = '';
+  for (const lv of ['T','M','H','E','X']){
+    const list = ents.filter(e => e.level === lv && (!ui.fixOnly || filledFix(e.ek).length) && (!q || e.name.includes(q)));
+    if (!list.length) continue;
+    side += `<div class="sb-sec"><span>${FX_LEVEL[lv]}</span><span>${list.length}</span></div>` + list.map(e => { const n = filledFix(e.ek).length;
+      return `<button class="fx-item${e.ek === ui.fixSel ? ' active' : ''}" data-fxent="${esc(e.ek)}" title="${esc(e.name)}"><span class="nm">${esc(e.name)}</span>${n ? `<span class="fx-cnt">${n}</span>` : ''}</button>`; }).join('');
+  }
+  if (!side) side = `<div class="sb-empty">${ents.length ? '조건에 맞는 학교가 없습니다.' : '⚙ 설정에서 파일을 업로드하면 학교 목록이 나타납니다.'}</div>`;
+  const cur = ents.find(e => e.ek === ui.fixSel);
+  const rows = cur ? fixRows(cur.ek) : [];
+  const total = fixEntities('all').length, totalRows = fixEntities('all').reduce((a, e) => a + filledFix(e.ek).length, 0);
+  const items = fixItemList();
+  let main = '';
+  if (!cur) main = `<div class="fx-card"><div class="fx-empty">왼쪽에서 학교를 고르세요.</div></div>`;
+  else {
+    main = `<div class="fx-head"><h2>${esc(cur.name)}</h2><span class="pill">${FX_LEVEL[cur.level]}</span><span class="pill" style="background:#e0e7ff;color:#3730a3">수정사항 ${filledFix(cur.ek).length}건</span></div>
+      <div class="fx-bar">
+        <button class="btn primary" id="fxAdd">＋ 수정사항 추가</button>
+        <span style="flex:1"></span>
+        <span class="lg">이 학교</span><button class="btn" id="fxPrint1">인쇄</button><button class="btn" id="fxPdf1">PDF 다운로드</button>
+        <span class="grp"><span class="lg">여러 학교 (수정사항 ${total}곳 · ${totalRows}건)</span>
+          <select id="fxScope">${[['all','전체'],['T','전체 파일'],['M','중학교'],['H','고등학교']].map(([k, v]) => `<option value="${k}"${ui.fixScope === k ? ' selected' : ''}>${v}</option>`).join('')}</select>
+          <button class="btn" id="fxPrintAll">일괄 인쇄</button><button class="btn" id="fxPdfAll">일괄 PDF</button><button class="btn" id="fxXlsx">엑셀</button></span>
+      </div>
+      <datalist id="fxItems">${items.map(t => `<option value="${esc(t)}">`).join('')}</datalist>
+      <div class="fx-card"><table class="fx"><thead><tr><th style="width:44px;text-align:center">번호</th><th style="width:24%">항목</th><th>수정 내용</th><th style="width:96px"></th></tr></thead><tbody>
+      ${rows.map((r, i) => `<tr data-fxrow="${r.id}"><td class="no">${i + 1}</td>
+        <td><input data-fxitem="${r.id}" list="fxItems" value="${esc(r.item || '')}" class="${r.item ? '' : 'emp'}" placeholder="항목 (예: 국어 정원)" autocomplete="off"></td>
+        <td><textarea data-fxtext="${r.id}" rows="1" placeholder="수정할 내용">${esc(r.text || '')}</textarea></td>
+        <td class="act"><button class="icon-s" data-fxmove="${r.id}|-1" title="위로" ${i ? '' : 'disabled'}>▲</button> <button class="icon-s" data-fxmove="${r.id}|1" title="아래로" ${i < rows.length - 1 ? '' : 'disabled'}>▼</button> <button class="rdel" data-fxdel="${r.id}" title="삭제" style="border:none;background:none;color:#9ca3af;font-size:16px">×</button></td></tr>`).join('')
+        || `<tr><td colspan="4" class="fx-empty">아직 수정사항이 없습니다. <b>＋ 수정사항 추가</b>를 눌러 항목과 내용을 적으세요.</td></tr>`}
+      </tbody></table></div>
+      <div class="foot">항목은 한 번 쓰면 다음부터 목록에서 고를 수 있습니다. 항목에서 Enter를 누르면 내용 칸으로 넘어갑니다. 자동 저장됩니다.</div>`;
+  }
+  FULL.innerHTML = `<div class="fx-wrap"><aside class="fx-side">
+      <input class="search" id="fxQ" placeholder="학교 검색" value="${esc(ui.fixQ)}">
+      <label class="chk"><input type="checkbox" id="fxOnly" ${ui.fixOnly ? 'checked' : ''}> 수정사항 있는 곳만</label>
+      <div class="fx-list">${side}</div></aside>
+    <section class="fx-main"><h2 class="tt">학교별 수정사항</h2>${main}</section></div>`;
+  FULL.querySelectorAll('table.fx textarea').forEach(autoGrow);
+  FULL.scrollTop = sy;
+}
+function fixDocHtml(e){
+  const rows = filledFix(e.ek), d = new Date(), p = n => String(n).padStart(2, '0');
+  const groups = []; rows.forEach(r => { const k = String(r.item || '').trim() || '(항목 없음)'; let g = groups.find(x => x.k === k); if (!g){ g = { k, list:[] }; groups.push(g); } g.list.push(r); });
+  let no = 0, body = '';
+  groups.forEach(g => g.list.forEach((r, i) => { no++;
+    body += `<tr><td class="c">${no}</td>${i === 0 ? `<td class="it" rowspan="${g.list.length}">${esc(g.k)}</td>` : ''}<td class="tx">${esc(r.text || '')}</td></tr>`; }));
+  return `<div class="fdoc"><div class="fd-head"><div class="fd-k">교원조직 예정표 수정사항</div><div class="fd-t">${esc(e.name)}</div>
+      <div class="fd-m">${FX_LEVEL[e.level] || ''} · 총 ${rows.length}건 · 출력일 ${d.getFullYear()}. ${p(d.getMonth() + 1)}. ${p(d.getDate())}.</div></div>
+    ${rows.length ? `<table class="fd-tb"><colgroup><col style="width:13mm"><col style="width:42mm"><col></colgroup><thead><tr><th>번호</th><th>항목</th><th>수정 내용</th></tr></thead><tbody>${body}</tbody></table>` : '<div class="fd-none">수정사항 없음</div>'}
+    <div class="fd-foot">교원조직 예정표 비교·검증</div></div>`;
+}
+function fixPrint(ents){
+  if (!ents.length){ alert('출력할 수정사항이 없습니다.'); return; }
+  const old = $('#batchPrint'); if (old) old.remove();
+  const box = document.createElement('div'); box.id = 'batchPrint'; box.className = 'portrait';
+  box.innerHTML = ents.map(e => `<div class="bpage">${fixDocHtml(e)}</div>`).join('');
+  document.body.appendChild(box); document.body.classList.add('batch-print');
+  setTimeout(() => { window.print(); setTimeout(() => { box.remove(); document.body.classList.remove('batch-print'); }, 300); }, 50);
+}
+let pdfLibPromise = null;
+function loadPdfLib(){
+  if (window.html2pdf) return Promise.resolve();
+  if (!pdfLibPromise) pdfLibPromise = new Promise((res, rej) => {
+    const sc = document.createElement('script'); sc.src = PDF_LIB_URL; sc.onload = res;
+    sc.onerror = () => { pdfLibPromise = null; rej(new Error('PDF 도구를 불러오지 못했습니다 (인터넷 연결 확인)')); };
+    document.head.appendChild(sc);
+  });
+  return pdfLibPromise;
+}
+async function fixPdf(ents, filename){
+  if (!ents.length){ alert('PDF로 만들 수정사항이 없습니다.'); return; }
+  toast(`<b>PDF 만드는 중…</b> (${ents.length}곳)`, { sticky:true });
+  let box = null;
+  try {
+    await loadPdfLib();
+    box = document.createElement('div');
+    box.style.cssText = 'width:182mm;background:#fff';
+    box.innerHTML = ents.map((e, i) => fixDocHtml(e) + (i < ents.length - 1 ? '<div class="html2pdf__page-break"></div>' : '')).join('');
+    await window.html2pdf().set({ margin:[14, 14, 14, 14], filename:safeName(filename), image:{ type:'jpeg', quality:0.96 },
+      html2canvas:{ scale:2, backgroundColor:'#ffffff', scrollX:0, scrollY:0 },
+      jsPDF:{ unit:'mm', format:'a4', orientation:'portrait' }, pagebreak:{ mode:['css','legacy'], avoid:['tr', '.fd-head'] } }).from(box).save();
+    toast(`<b>PDF 저장 완료</b><br>${esc(safeName(filename))}`);
+  } catch(err){ toast(`<b>PDF를 만들지 못했습니다.</b><br>${esc(err.message || err)}<br>대신 ‘인쇄’에서 ‘PDF로 저장’을 고르셔도 됩니다.`, { err:true, sticky:true }); }
+  finally { box = null; }
+}
+function fixSheet(ents){
+  const aoa = [['학교급','학교/구분','번호','항목','수정 내용','작성·수정일시']];
+  ents.forEach(e => filledFix(e.ek).forEach((r, i) => aoa.push([FX_LEVEL[e.level], e.name, i + 1, r.item || '', r.text || '', fmtTime(r.updatedAt || r.createdAt)])));
+  if (aoa.length === 1) aoa.push(['', '(수정사항 없음)']);
+  const ws = XLSX.utils.aoa_to_sheet(aoa); ws['!cols'] = [{wch:10},{wch:18},{wch:6},{wch:20},{wch:70},{wch:16}];
+  return ws;
+}
+function fixFind(id){ const rows = fixRows(ui.fixSel); return { rows, r:rows.find(x => x.id === id) }; }
+let fixTimer = null;
+const fixSaveSoon = () => { clearTimeout(fixTimer); fixTimer = setTimeout(persist, 400); };
+FULL.addEventListener('click', e => {
+  if (ui.tab !== 'fix') return;
+  const b = e.target.closest('button'); if (!b) return;
+  const cur = fixAllEnts().find(x => x.ek === ui.fixSel);
+  if (b.dataset.fxent){ ui.fixSel = b.dataset.fxent; renderFix(); return; }
+  if (b.id === 'fxAdd' && cur){
+    const r = { id:uid(), item:'', text:'', createdAt:new Date().toISOString() };
+    (state.fixes[cur.ek] = state.fixes[cur.ek] || []).push(r); persist(); renderFix();
+    const inp = FULL.querySelector(`input[data-fxitem="${r.id}"]`); if (inp){ inp.scrollIntoView({ block:'center' }); inp.focus(); }
+    return;
+  }
+  if (b.dataset.fxdel){
+    const { rows, r } = fixFind(b.dataset.fxdel); if (!r) return;
+    if ((r.item || r.text) && !confirm('이 수정사항을 삭제할까요?')) return;
+    state.fixes[ui.fixSel] = rows.filter(x => x !== r);
+    if (!state.fixes[ui.fixSel].length) delete state.fixes[ui.fixSel];
+    persist(); renderFix(); return;
+  }
+  if (b.dataset.fxmove){
+    const [id, dir] = b.dataset.fxmove.split('|'), rows = fixRows(ui.fixSel), i = rows.findIndex(x => x.id === id), j = i + Number(dir);
+    if (i < 0 || j < 0 || j >= rows.length) return;
+    [rows[i], rows[j]] = [rows[j], rows[i]]; persist(); renderFix(); return;
+  }
+  const stamp = () => { const d = new Date(), p = n => String(n).padStart(2, '0'); return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}`; };
+  const scopeName = { all:'전체', T:'전체파일', M:'중학교', H:'고등학교' }[ui.fixScope];
+  if (b.id === 'fxPrint1' && cur) return fixPrint([cur]);
+  if (b.id === 'fxPdf1' && cur) return fixPdf([cur], `수정사항_${cur.name}_${stamp()}.pdf`);
+  if (b.id === 'fxPrintAll') return fixPrint(fixEntities(ui.fixScope));
+  if (b.id === 'fxPdfAll') return fixPdf(fixEntities(ui.fixScope), `수정사항_${scopeName}_${stamp()}.pdf`);
+  if (b.id === 'fxXlsx'){ const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, fixSheet(fixEntities(ui.fixScope)), '학교별 수정사항'); saveBook(wb, `학교별_수정사항_${scopeName}_${stamp()}.xlsx`); }
+});
+FULL.addEventListener('input', e => {
+  if (ui.tab !== 'fix') return;
+  const t = e.target;
+  if (t.id === 'fxQ'){ clearTimeout(fixTimer); const pos = t.selectionStart; ui.fixQ = t.value;
+    setTimeout(() => { renderFix(); const n = $('#fxQ'); if (n){ n.focus(); n.setSelectionRange(pos, pos); } }, 200); return; }
+  const id = t.dataset.fxitem || t.dataset.fxtext; if (!id) return;
+  const { r } = fixFind(id); if (!r) return;
+  if (t.dataset.fxitem){ r.item = t.value; t.classList.toggle('emp', !t.value); }
+  else { r.text = t.value; autoGrow(t); }
+  r.updatedAt = new Date().toISOString(); fixSaveSoon();
+});
+FULL.addEventListener('change', e => {
+  if (ui.tab !== 'fix') return;
+  const t = e.target;
+  if (t.id === 'fxOnly'){ ui.fixOnly = t.checked; renderFix(); return; }
+  if (t.id === 'fxScope'){ ui.fixScope = t.value; return; }
+  if (t.dataset.fxitem){   // 항목을 다 쓰면 목록에 추가하고 건수 갱신
+    const v = t.value.trim(); if (v) state.fixItems = [v, ...(state.fixItems || []).filter(x => x !== v)].slice(0, 80);
+    persist();
+    const dl = $('#fxItems'); if (dl) dl.innerHTML = fixItemList().map(x => `<option value="${esc(x)}">`).join('');
+    const cnt = FULL.querySelector(`.fx-item.active .fx-cnt`), n = filledFix(ui.fixSel).length;
+    if (cnt) cnt.textContent = n;
+  }
+});
+FULL.addEventListener('keydown', e => {
+  if (ui.tab !== 'fix' || e.key !== 'Enter' || !e.target.dataset || !e.target.dataset.fxitem) return;
+  e.preventDefault(); const ta = FULL.querySelector(`textarea[data-fxtext="${e.target.dataset.fxitem}"]`); if (ta) ta.focus();
 });
 
 /* ===================== 비교 재실행 · 알림 · 실시간 동기화 ===================== */
