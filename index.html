@@ -504,6 +504,48 @@ table.tm td.to{min-width:24px;padding:4px 2px}
 .slot .acts2{display:flex;gap:5px;flex-wrap:wrap}
 .slot .acts2 .btn{padding:4px 9px;font-size:12.5px}
 
+/* ---------- 단위시간 배당표 ---------- */
+.u-up{display:flex;gap:6px;padding:10px 10px 4px}
+.u-up .btn{flex:1}
+.u-sub{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.u-head{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.u-head h2{margin:0;font-size:19px}
+.u-head .meta{font-size:12px}
+table.ut{width:100%;border-collapse:collapse;font-size:14px;background:#fff;border:1px solid #eadfe3}
+table.ut thead th{background:#fbe9ee;color:#e8590c;font-weight:700;padding:13px 8px;border-right:1px solid #f1d6dd;border-bottom:1px solid #e9c3cd;text-align:center}
+table.ut thead th.plain{background:#eef0f4;color:#374151;font-weight:500}
+table.ut td{text-align:center;padding:9px 8px;border-right:1px solid #eef0f3;border-bottom:1px solid #eef0f3;font-variant-numeric:tabular-nums}
+table.ut tbody tr{cursor:pointer}
+table.ut tbody tr:hover td{background:#fff7ed}
+table.ut tbody tr.on td{background:#ffedd5}
+table.ut td.neg{color:var(--neg);font-weight:700}
+table.ut tfoot td{background:#737b8c;color:#fff;font-weight:700;padding:11px 8px;text-align:center;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+table.ut td.bad{background:#fee2e2!important;color:#b91c1c;font-weight:700}
+.u-card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:12px}
+.u-card h3{margin:0 0 8px;font-size:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+table.uco{width:100%;border-collapse:collapse;font-size:12.5px}
+table.uco th{background:#f8fafc;color:var(--muted);font-size:11.5px;padding:5px 6px;border-bottom:1px solid var(--line);text-align:center;position:sticky;top:0}
+table.uco td{padding:4px 6px;border-bottom:1px solid var(--line2);text-align:center;font-variant-numeric:tabular-nums}
+table.uco td.l{text-align:left}
+.u-scroll{max-height:420px;overflow:auto;border:1px solid var(--line);border-radius:8px}
+.chk-list{margin:0;padding-left:18px;font-size:13px;line-height:1.7}
+.chk-list .ok{color:var(--ok)} .chk-list .ng{color:var(--neg);font-weight:700}
+table.uc{width:100%;border-collapse:collapse;font-size:13px;background:#fff}
+table.uc th,table.uc td{border:1px solid var(--line);padding:6px 6px;text-align:center;font-variant-numeric:tabular-nums}
+table.uc thead th{background:#f1f3f6;font-size:12px}
+table.uc thead th.u{background:#fbe9ee;color:#c2410c} table.uc thead th.p{background:var(--fin-bg);color:var(--fin)}
+table.uc td.l{text-align:left;font-weight:700}
+table.uc tbody tr{cursor:pointer}
+table.uc tbody tr:hover td{box-shadow:inset 0 0 0 9999px rgba(147,197,253,.12)}
+table.uc tr.csel td{box-shadow:inset 0 0 0 9999px rgba(17,24,39,.07)}
+table.uc td.x{background:#fee2e2;color:#b91c1c;font-weight:700}
+table.uc td.dx{color:#b91c1c;font-weight:700}
+table.uc tfoot td{background:#f1f3f6;font-weight:700}
+.ust{font-size:11.5px;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.ust.ok{background:#dcfce7;color:#166534} .ust.diff{background:#fee2e2;color:#b91c1c} .ust.pass{background:#dbeafe;color:#1e40af} .ust.stale{background:#fef3c7;color:#92400e} .ust.onlyU,.ust.onlyP{background:#f3e8ff;color:#6b21a8}
+.u-link{display:flex;gap:6px;align-items:center;font-size:12.5px;margin-top:6px;flex-wrap:wrap}
+.u-link select{padding:4px 6px;border:1px solid var(--line);border-radius:6px}
+
 /* ---------- 점검 메모 ---------- */
 .memo{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:12px;overflow:hidden}
 .memo-h{display:flex;align-items:center;gap:8px;padding:10px 12px;background:#f8fafc;border-bottom:1px solid var(--line)}
@@ -549,6 +591,7 @@ table.mt td.empty-row{color:var(--muted);text-align:center;padding:14px}
     <button class="tab" data-tab="pass">차이 통과 내역</button>
     <button class="tab" data-tab="cls">학급수 비교</button>
     <button class="tab" data-tab="to">TO 증감</button>
+    <button class="tab" data-tab="unit">단위시간 배당표</button>
     <button class="tab" data-tab="memo">점검 메모</button>
     <button class="tab" data-tab="fix">학교별 수정사항</button>
   </nav>
@@ -571,6 +614,7 @@ table.mt td.empty-row{color:var(--muted);text-align:center;padding:14px}
 <div id="tplModal" hidden></div>
 <div id="slotModal" hidden></div>
 <input type="file" id="slotInput" accept=".json,application/json" hidden>
+<input type="file" id="unitInput" accept=".xlsx,.xls" multiple hidden>
 <input type="file" id="tplInput" accept=".xlsx" hidden>
 
 <script>
@@ -587,7 +631,7 @@ const LEVELS = { M:'중학교', H:'고등학교', E:'기타' };
 const KEY_ROWS = ['당해년도정원','당해년도현원','기준년도정원'];
 const BREAK_BEFORE = ['과부족인원','정원외기간제','차기년도정원'];
 
-const blank = () => ({ app:APP_ID, version:1, groups:{ fin:{files:{}}, sep:{files:{}} }, schoolMeta:{}, subjectAlias:{}, reviews:{}, classNotes:{}, memos:[], memoItems:[], toExclude:[], fixes:{}, fixItems:[], tplSchoolMap:{}, tplSubjMap:{}, tplCustom:null, updatedAt:null });
+const blank = () => ({ app:APP_ID, version:1, groups:{ fin:{files:{}}, sep:{files:{}} }, schoolMeta:{}, subjectAlias:{}, reviews:{}, classNotes:{}, memos:[], memoItems:[], toExclude:[], fixes:{}, fixItems:[], tplSchoolMap:{}, tplSubjMap:{}, tplCustom:null, units:{}, unitLink:{}, unitReviews:{}, unitExclude:['교장','교감'], updatedAt:null });
 let state = blank();
 const ui = { mode:'view', tab:'plan', sel:null, group:'fin', showAll:false, logs:{fin:[],sep:[]},
              cmpMode:'delta', cell:null, lastEnt:null, memoQ:'',  passGroup:'item', passFilter:'pass', passQ:'', clsFilter:'all', clsQ:'' };
@@ -651,6 +695,8 @@ function normalize(o){
   s.fixes = o.fixes && typeof o.fixes === 'object' ? o.fixes : {};
   s.fixItems = Array.isArray(o.fixItems) ? o.fixItems : [];
   s.tplSchoolMap = o.tplSchoolMap || {}; s.tplSubjMap = o.tplSubjMap || {}; s.tplCustom = o.tplCustom || null;
+  s.units = o.units || {}; s.unitLink = o.unitLink || {}; s.unitReviews = o.unitReviews || {};
+  s.unitExclude = Array.isArray(o.unitExclude) ? o.unitExclude : ['교장','교감'];
   s.updatedAt = o.updatedAt || null;
   return s;
 }
@@ -1159,7 +1205,7 @@ function renderSettings(){
     <section class="card"><h2>5. 저장 · 불러오기 · 초기화</h2>
       <p class="hint">작업 내용은 이 브라우저에 자동 저장됩니다. 다른 컴퓨터에서 이어서 하려면 작업 파일(.json)로 저장해 가져가서 불러오세요.
       ${state.updatedAt ? `<br>마지막 변경: ${fmtTime(state.updatedAt)}` : ''}</p>
-      <div class="row"><button class="btn primary" id="btnSave">작업 파일 저장 (.json)</button><button class="btn" id="btnLoad">작업 파일 불러오기</button><button class="btn" id="setAllXlsx">통합 엑셀 다운로드 (메모·차이·학급수·TO증감·수정사항)</button></div>
+      <div class="row"><button class="btn primary" id="btnSave">작업 파일 저장 (.json)</button><button class="btn" id="btnLoad">작업 파일 불러오기</button><button class="btn" id="setAllXlsx">통합 엑셀 다운로드 (메모·차이·학급수·TO증감·수정사항·배당표)</button></div>
       <div class="row"><button class="btn danger" data-reset="sep">9월 자료 초기화</button><button class="btn danger" data-reset="fin">최종 자료 초기화</button><button class="btn danger" data-reset="all">전체 초기화 (학교·교과 설정 포함)</button></div>
     </section></div>`;
 }
@@ -1286,6 +1332,7 @@ function renderView(){
   else if (ui.tab === 'pass') renderPass();
   else if (ui.tab === 'to') renderTO();
   else if (ui.tab === 'fix') renderFix();
+  else if (ui.tab === 'unit') renderUnit();
   else if (ui.tab === 'cls') renderClass();
   else if (ui.tab === 'memo') renderMemo();
 }
@@ -1855,6 +1902,8 @@ function allExcel(){
   XLSX.utils.book_append_sheet(wb, toListSheet(toData('cap', 'all')), 'TO증감(정원)');
   XLSX.utils.book_append_sheet(wb, toListSheet(toData('cur', 'all')), 'TO증감(현원)');
   XLSX.utils.book_append_sheet(wb, fixSheet(fixEntities('all')), '학교별 수정사항');
+  XLSX.utils.book_append_sheet(wb, unitStatusSheet(), '배당표 대조 현황');
+  XLSX.utils.book_append_sheet(wb, unitDetailSheet(Object.keys(state.units)), '배당표 대조 상세');
   const p = n => String(n).padStart(2,'0'), d = new Date();
   saveBook(wb, `교원조직예정표_점검결과_${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}.xlsx`);
 }
@@ -2772,6 +2821,326 @@ $('#slotInput').addEventListener('change', async e => {
   } catch(err){ toast(`<b>올리기 실패</b><br>${esc(err.message || err)}`, { err:true, sticky:true }); }
 });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#slotModal').hidden) $('#slotModal').hidden = true; });
+
+/* ===================== 단위시간 배당표 탭 ===================== */
+Object.assign(ui, { unitSub:'view', unitSel:null, unitRow:null, unitFilter:null, unitExOpen:false, unitQ:'' });
+const U_HEAD = { no:'순번', name:'과목', tsub:'수업교사정원(임용)과목', grade:'학년', sem:'수업학기', hrs:'주당시수', cls:'학급수', annual:'연환산주당시수(학점)계',
+  subj:'정원(임용)과목', hours:'시수(학점)통계', calc:'계산교원수', A:'당해년도현원(A)', B:'기준년도정원(B)', D:'증감(A-B)' };
+async function parseUnit(file){
+  const wb = XLSX.read(await file.arrayBuffer(), { type:'array' });
+  let aoa = null;
+  for (const n of wb.SheetNames){ const a = XLSX.utils.sheet_to_json(wb.Sheets[n], { header:1, defval:null, raw:true });
+    if (a.some(r => r && r.some(c => nospace(clean(c)) === '정원(임용)과목'))){ aoa = a; break; } }
+  if (!aoa) throw new Error('단위시간 배당표 형식(정원(임용)과목 열)을 찾지 못함');
+  let school = '', office = '';
+  for (const r of aoa){ if (!r) continue; for (const c of r){ const t = clean(c); const m = t.match(/학교\s*:\s*([^,]+)/); if (m && !school){ school = clean(m[1]); const o = t.match(/교육지원청\s*:\s*([^,]+)/); if (o) office = clean(o[1]); } } }
+  if (!school) school = file.name.replace(/\.[^.]+$/, '');
+  const heads = []; aoa.forEach((r, i) => { if (r && r.some(c => nospace(clean(c)) === '정원(임용)과목')) heads.push(i); });
+  const col = {}; aoa[heads[0]].forEach((c, j) => { const t = nospace(clean(c)); for (const [k, v] of Object.entries(U_HEAD)) if (t === v && col[k] == null) col[k] = j; });
+  if (col.subj == null || col.A == null || col.B == null) throw new Error('현원(A)·기준년도 정원(B) 열을 찾지 못함');
+  const num = v => { const x = toVal(v); return typeof x === 'number' ? x : null; };
+  const summary = [], courses = [], seenS = new Set();
+  for (const h of heads){
+    for (let r = h + 1; r < aoa.length; r++){
+      const row = aoa[r]; if (!row) continue;
+      const flat = row.map(c => nospace(clean(c))).join('|');
+      if (/총계|교육과정편제및단위시간배당표|학교:/.test(flat) || flat.includes('정원(임용)과목')) break;
+      if (col.no != null && typeof num(row[col.no]) === 'number' && clean(row[col.name])){
+        courses.push({ no:num(row[col.no]), name:clean(row[col.name]), tsub:clean(row[col.tsub]), grade:toVal(row[col.grade]), sem:toVal(row[col.sem]), hrs:num(row[col.hrs]), cls:num(row[col.cls]), annual:num(row[col.annual]) });
+      }
+      const sj = clean(row[col.subj]);
+      if (sj && !seenS.has(sj)){ seenS.add(sj);
+        summary.push({ subj:sj, hours:num(row[col.hours]), calc:num(row[col.calc]), A:num(row[col.A]), B:num(row[col.B]), D:num(row[col.D]) }); }
+    }
+  }
+  if (!summary.length) throw new Error('정원(임용)과목별 요약이 비어 있음');
+  const totals = {};
+  for (let i = 0; i < aoa.length - 1 && !totals.found; i++){
+    const r = aoa[i]; if (!r) continue;
+    const lab = r.map(c => nospace(clean(c)));
+    if (lab.some(t => /현원총계/.test(t))){
+      const v = aoa[i + 1] || [];
+      lab.forEach((t, j) => { if (!t) return; const n = num(v[j]);
+        if (/연환산주당시수총계/.test(t)) totals.hours = n; else if (/평균시수/.test(t)) totals.avg = n; else if (/현원총계/.test(t)) totals.A = n; else if (/기준년도정원총계/.test(t)) totals.B = n; else if (/증감총계/.test(t)) totals.D = n; });
+      totals.found = true;
+    }
+  }
+  delete totals.found;
+  courses.sort((a, b) => a.no - b.no);
+  return { school, office, fileName:file.name, uploadedAt:new Date().toISOString(), summary, courses, totals };
+}
+// 배당표 학교 ↔ 업로드한 예정표 학교 연결 (같은 약칭이면 자동)
+function unitEk(name){
+  if (state.unitLink[name] !== undefined) return state.unitLink[name] || null;
+  const e = allEntities().find(x => x.level !== 'T' && schoolShort(x.name) === schoolShort(name));
+  return e ? entKey(e.sel) : null;
+}
+function unitLevel(name){ const ek = unitEk(name), e = ek && allEntities().find(x => entKey(x.sel) === ek); return e ? e.level : inferLevel(name); }
+// 배당표 자체 검산
+function unitChecks(U){
+  const out = [], eq = (a, b, t = 0.011) => a != null && b != null && Math.abs(a - b) < t, sum = k => U.summary.reduce((a, r) => a + (r[k] || 0), 0);
+  const bad = U.summary.filter(r => r.A != null && r.B != null && r.D != null && r.D !== r.A - r.B);
+  out.push({ ok:!bad.length, text: bad.length ? `증감(A-B) 계산이 맞지 않는 교과: ${bad.map(r => `${r.subj}(${r.A}-${r.B}≠${r.D})`).join(', ')}` : '교과별 증감(A-B) = 현원(A) − 기준년도 정원(B)' });
+  const T = U.totals;
+  if (T.A != null) out.push({ ok:eq(sum('A'), T.A), text:`현원 합계 ${sum('A')} ${eq(sum('A'), T.A) ? '=' : '≠'} 현원총계 ${T.A}` });
+  if (T.B != null) out.push({ ok:eq(sum('B'), T.B), text:`기준년도 정원 합계 ${sum('B')} ${eq(sum('B'), T.B) ? '=' : '≠'} 기준년도 정원 총계 ${T.B}` });
+  if (T.D != null) out.push({ ok:eq(sum('D'), T.D), text:`증감 합계 ${sum('D')} ${eq(sum('D'), T.D) ? '=' : '≠'} 증감총계 ${T.D}` });
+  if (T.hours != null){ const h = Math.round(sum('hours') * 100) / 100; out.push({ ok:eq(h, T.hours, 0.6), text:`시수(학점) 합계 ${h} ${eq(h, T.hours, 0.6) ? '=' : '≠'} 연환산 주당시수 총계 ${T.hours}` }); }
+  if (U.courses.length){
+    const by = new Map(); U.courses.forEach(c => by.set(tNorm(c.tsub), (by.get(tNorm(c.tsub)) || 0) + (c.annual || 0)));
+    const mis = U.summary.filter(r => r.hours != null && !eq(by.get(tNorm(r.subj)) || 0, r.hours, 0.06));
+    out.push({ ok:!mis.length, text: mis.length ? `과목별 편제 합과 시수(학점)총계가 다른 교과: ${mis.map(r => `${r.subj}(편제 ${Math.round((by.get(tNorm(r.subj)) || 0) * 100) / 100} / 총계 ${r.hours})`).join(', ')}` : `과목별 편제(${U.courses.length}개)의 연환산 시수 합 = 교과별 시수(학점)총계` });
+  }
+  if (T.avg){ const mis = U.summary.filter(r => r.hours != null && r.calc != null && Math.abs(r.hours / T.avg - r.calc) > 0.011);
+    out.push({ ok:!mis.length, text: mis.length ? `계산교원수(시수÷평균시수)가 다른 교과: ${mis.map(r => r.subj).join(', ')}` : `계산교원수 = 시수(학점)총계 ÷ 평균시수 ${T.avg}` }); }
+  return out;
+}
+// 배당표 ↔ 11월(최종) 교원조직예정표 대조
+function unitCompare(name){
+  const U = state.units[name], ek = unitEk(name), ent = ek && allEntities().find(e => entKey(e.sel) === ek);
+  const rec = ent ? getRec(ent.sel, 'fin') : null;
+  const res = { name, U, ek, ent, rec, rows:[], cnt:{ ok:0, diff:0, pass:0, stale:0, onlyU:0, onlyP:0 }, tot:{ uA:0, uB:0, uD:0, pA:0, pB:0, pD:0 } };
+  if (!U) return res;
+  const ex = new Set((state.unitExclude || []).map(tNorm));
+  const P = new Map(), order = [];
+  if (rec){
+    const fm = recMaps(rec), row = n => { const l = fm.order.find(x => nospace(x) === n); return l ? fm.rows.get(l) : null; };
+    const RA = row('당해년도현원'), RB = row('기준년도정원'), RD = row('과부족인원');
+    fm.subs.forEach(s => { const a = nz(RA && RA.get(s)), b = nz(RB && RB.get(s)), d = RD ? nz(RD.get(s)) : a - b;
+      if (typeof a === 'number' && typeof b === 'number' && (a || b)) { P.set(tNorm(s), { s, A:a, B:b, D:typeof d === 'number' ? d : a - b }); order.push(tNorm(s)); } });
+  }
+  const keys = [...U.summary.map(r => tNorm(r.subj))]; order.forEach(k => { if (!keys.includes(k)) keys.push(k); });
+  for (const k of keys){
+    if (ex.has(k)) continue;
+    const u = U.summary.find(r => tNorm(r.subj) === k) || null, p = P.get(k) || null;
+    if (!u && !p) continue;
+    let st = !rec ? 'onlyU' : !u ? 'onlyP' : !p ? 'onlyU' : (nz(u.A) === p.A && nz(u.B) === p.B && nz(u.D) === p.D ? 'ok' : 'diff');
+    const snap = JSON.stringify([u && [nz(u.A), nz(u.B), nz(u.D)], p && [p.A, p.B, p.D]]);
+    const rv = state.unitReviews[name + '|' + k];
+    if (st !== 'ok' && rec && rv && rv.checked && String(rv.reason || '').trim()) st = rv.snap === snap ? 'pass' : 'stale';
+    res.cnt[st]++;
+    if (u){ res.tot.uA += nz(u.A); res.tot.uB += nz(u.B); res.tot.uD += nz(u.D); }
+    if (p){ res.tot.pA += p.A; res.tot.pB += p.B; res.tot.pD += p.D; }
+    res.rows.push({ k, label: u ? u.subj : p.s, u, p, st, snap, rv });
+  }
+  res.unresolved = res.cnt.diff + res.cnt.stale + (rec ? res.cnt.onlyU + res.cnt.onlyP : 0) - (rec ? 0 : 0);
+  // 한쪽에만 있는 교과도 사유로 통과시킬 수 있게(위에서 pass로 바뀐 것은 제외됨)
+  res.unresolved = res.rows.filter(r => ['diff','stale','onlyU','onlyP'].includes(r.st) && res.rec).length;
+  return res;
+}
+const UST = { ok:'일치', diff:'불일치', pass:'통과(사유)', stale:'재확인', onlyU:'배당표에만', onlyP:'예정표에만' };
+function unitNames(){ return Object.keys(state.units).sort((a, b) => a.localeCompare(b, 'ko')); }
+function renderUnit(){
+  const sy = FULL.scrollTop, names = unitNames();
+  if (!ui.unitSel || !state.units[ui.unitSel]) ui.unitSel = names[0] || null;
+  const q = ui.unitQ.trim();
+  let side = '';
+  for (const lv of ['M','H','E']){
+    const list = names.filter(n => unitLevel(n) === lv && (!q || n.includes(q))); if (!list.length) continue;
+    side += `<div class="sb-sec"><span>${LEVELS[lv]}</span><span>${list.length}</span></div>` + list.map(n => { const C = unitCompare(n);
+      const bd = !C.rec ? '<span class="bdg none" title="최종 예정표 없음">–</span>' : C.unresolved ? `<span class="bdg un" title="미해결 ${C.unresolved}">${C.unresolved}</span>` : '<span class="bdg ok" title="모두 일치·통과">✔</span>';
+      return `<button class="fx-item${n === ui.unitSel ? ' active' : ''}" data-unit="${esc(n)}" title="${esc(n)}"><span class="nm">${esc(n)}</span>${bd}</button>`; }).join('');
+  }
+  if (!side) side = `<div class="sb-empty">${names.length ? '조건에 맞는 학교가 없습니다.' : '위의 <b>배당표 올리기</b>로 학교별 단위시간 배당표 엑셀을 올리세요. 여러 개를 한 번에 올릴 수 있습니다.'}</div>`;
+  const seg = `<div class="seg">${[['view','배당표 정리'],['cmp','교원조직예정표 대조'],['all','전체 현황']].map(([k, v]) => `<button data-usub="${k}" class="${ui.unitSub === k ? 'on' : ''}">${v}</button>`).join('')}</div>`;
+  let main = '';
+  if (ui.unitSub === 'all') main = unitAllView();
+  else if (!ui.unitSel) main = `<div class="fx-card"><div class="fx-empty">왼쪽 위 <b>배당표 올리기</b>로 엑셀을 올리면 학교별로 정리해 보여 줍니다.</div></div>`;
+  else main = ui.unitSub === 'view' ? unitView(ui.unitSel) : unitCmpView(ui.unitSel);
+  FULL.innerHTML = `<div class="fx-wrap"><aside class="fx-side">
+      <div class="u-up"><button class="btn primary" id="unitUp">배당표 올리기</button></div>
+      <input class="search" id="unitQ" placeholder="학교 검색" value="${esc(ui.unitQ)}">
+      <div class="fx-list">${side}</div></aside>
+    <section class="fx-main"><div class="u-sub"><h2 class="tt" style="margin:0 8px 0 0">단위시간 배당표</h2>${seg}<span style="flex:1"></span>
+      <button class="btn" id="unitAllXlsx" ${names.length ? '' : 'disabled'}>대조 결과 엑셀 (전체)</button></div>${main}</section></div>`;
+  FULL.scrollTop = sy;
+  fitTables(FULL);
+}
+function unitLinkHtml(name){
+  const ek = unitEk(name), ents = allEntities().filter(e => e.level !== 'T'), man = state.unitLink[name] !== undefined;
+  return `<div class="u-link"><span class="lg">예정표 학교 연결</span><select data-ulink="${esc(name)}"><option value="">(연결 안 함)</option>${ents.map(e => `<option value="${esc(entKey(e.sel))}"${entKey(e.sel) === ek ? ' selected' : ''}>${esc(e.name)}</option>`).join('')}</select>
+    <span class="tag ${ek ? (man ? 'man' : 'auto') : 'warn'}">${ek ? (man ? '직접' : '자동') : '연결 없음'}</span></div>`;
+}
+function unitView(name){
+  const U = state.units[name], T = U.totals, F = ui.unitFilter;
+  const fmtN = v => v == null ? '' : (Math.round(v * 100) / 100).toString();
+  const rows = U.summary.map(r => `<tr data-ufilter="${esc(r.subj)}" class="${F === r.subj ? 'on' : ''}"><td>${esc(r.subj)}</td><td>${fmtN(r.hours)}</td><td>${fmtN(r.calc)}</td><td>${fmtN(r.A)}</td><td>${fmtN(r.B)}</td>
+    <td class="${(r.D || 0) < 0 ? 'neg' : ''}${r.A != null && r.B != null && r.D !== r.A - r.B ? ' bad' : ''}">${fmtN(r.D)}</td></tr>`).join('');
+  const courses = F ? U.courses.filter(c => c.tsub === F) : U.courses;
+  const checks = unitChecks(U);
+  return `<div class="u-head"><div><h2>${esc(name)}</h2><div class="meta"><span>${esc(U.office || '')}</span><span>기준년도 교육과정편제 및 단위시간 배당표</span><span>원본 <b>${esc(U.fileName)}</b> · ${fmtTime(U.uploadedAt)}</span></div>${unitLinkHtml(name)}</div>
+      <div class="row"><button class="btn" id="unitPrint">인쇄</button><button class="btn" id="unitXlsx">엑셀</button><button class="btn danger" id="unitDel">배당표 삭제</button></div></div>
+    <div style="overflow-x:auto" data-fit><table class="ut"><thead><tr><th>*정원(임용)과목</th><th>*시수(학점)총계</th><th>*계산교원수</th><th>*현원(A)</th><th>*기준년도<br>정원(B)</th><th class="plain">증감(A-B)</th></tr></thead>
+      <tbody>${rows}</tbody>
+      <tfoot><tr><td></td><td>${T.hours != null ? `총계 ${fmtN(T.hours)}` : ''}</td><td>평균시수(학점) : ${fmtN(T.avg)}</td><td>${fmtN(T.A)}</td><td>${fmtN(T.B)}</td><td>${fmtN(T.D)}</td></tr></tfoot></table></div>
+    <div class="u-card" style="margin-top:12px"><h3>배당표 자체 검산 ${checks.every(c => c.ok) ? '<span class="tag auto">이상 없음</span>' : `<span class="tag warn">확인 ${checks.filter(c => !c.ok).length}건</span>`}</h3>
+      <ul class="chk-list">${checks.map(c => `<li class="${c.ok ? 'ok' : 'ng'}">${c.ok ? '✔' : '✖'} ${esc(c.text)}</li>`).join('')}</ul></div>
+    <div class="u-card"><h3>과목별 편제 <span class="pill">${courses.length}개${F ? ` · ${esc(F)}` : ''}</span>${F ? '<button class="btn" data-ufilter="">전체 보기</button>' : '<span class="lg">위 표에서 교과를 누르면 그 교과 과목만 보입니다.</span>'}</h3>
+      <div class="u-scroll"><table class="uco"><thead><tr><th>순번</th><th>과목</th><th>수업교사 정원(임용)과목</th><th>학년</th><th>수업학기</th><th>주당시수</th><th>학급수</th><th>연환산 주당시수(학점)계</th></tr></thead>
+      <tbody>${courses.map(c => `<tr><td>${c.no}</td><td class="l">${esc(c.name)}</td><td>${esc(c.tsub)}</td><td>${fmt(c.grade)}</td><td>${fmt(c.sem)}</td><td>${fmtN(c.hrs)}</td><td>${fmtN(c.cls)}</td><td>${fmtN(c.annual)}</td></tr>`).join('')}</tbody></table></div></div>`;
+}
+function unitCmpView(name){
+  const C = unitCompare(name), R = ui.unitRow, ex = state.unitExclude || [];
+  const head = `<div class="u-head"><div><h2>${esc(name)} <span class="pill">배당표 ↔ 11월(최종) 교원조직예정표</span></h2>${unitLinkHtml(name)}</div>
+    <div class="row"><button class="btn${ex.length ? ' on-ex' : ''}" id="unitExBtn">제외 교과${ex.length ? ' ' + ex.length : ''} ${ui.unitExOpen ? '▴' : '▾'}</button><button class="btn" id="unitCmpXlsx">엑셀</button></div></div>`;
+  let exPanel = '';
+  if (ui.unitExOpen){
+    const list = new Set(ex); if (C.rec) recMaps(C.rec).subs.forEach(s => list.add(s)); C.U.summary.forEach(r => list.add(r.subj));
+    exPanel = `<div class="to-ex"><div class="exh"><b>대조에서 제외할 교과</b><span class="lg">교장·교감처럼 배당표에 없는 교과를 뺍니다. 모든 학교에 공통 적용, 자동 저장.</span><span style="flex:1"></span><button class="btn" id="unitExBtn">닫기</button></div>
+      <div class="exg">${[...list].map(s => `<label class="${ex.includes(s) ? 'on' : ''}"><input type="checkbox" data-uex="${esc(s)}" ${ex.includes(s) ? 'checked' : ''}>${esc(s)}</label>`).join('')}</div></div>`;
+  }
+  if (!C.rec) return head + exPanel + `<div class="fx-card"><div class="fx-empty">이 학교의 <b>최종 교원조직 예정표</b>가 없어 대조할 수 없습니다.<br>⚙ 설정에서 최종 파일을 올리거나, 위에서 예정표 학교를 연결해 주세요.</div></div>`;
+  const cell = (a, b) => a === b ? '' : ' x';
+  const f = v => v == null ? '-' : v;
+  const rows = C.rows.map(r => { const u = r.u, p = r.p;
+    const uA = u ? nz(u.A) : null, uB = u ? nz(u.B) : null, uD = u ? nz(u.D) : null, pA = p ? p.A : null, pB = p ? p.B : null, pD = p ? p.D : null;
+    const both = u && p;
+    return `<tr data-urow="${esc(r.k)}" class="${R === r.k ? 'csel' : ''}"><td class="l">${esc(r.label)}</td>
+      <td class="${both ? cell(uA, pA) : ''}">${f(uA)}</td><td class="${both ? cell(uA, pA) : ''}">${f(pA)}</td><td class="${both && uA !== pA ? 'dx' : ''}">${both && uA !== pA ? signed(uA - pA) : ''}</td>
+      <td class="${both ? cell(uB, pB) : ''}">${f(uB)}</td><td class="${both ? cell(uB, pB) : ''}">${f(pB)}</td><td class="${both && uB !== pB ? 'dx' : ''}">${both && uB !== pB ? signed(uB - pB) : ''}</td>
+      <td class="${both ? cell(uD, pD) : ''}">${f(uD)}</td><td class="${both ? cell(uD, pD) : ''}">${f(pD)}</td><td class="${both && uD !== pD ? 'dx' : ''}">${both && uD !== pD ? signed(uD - pD) : ''}</td>
+      <td><span class="ust ${r.st}">${UST[r.st]}</span></td></tr>`; }).join('');
+  const T = C.tot, tc = (a, b) => a === b ? '' : ' class="dx"';
+  const sel = R && C.rows.find(r => r.k === R);
+  return head + exPanel + `<div class="cards">
+      <div class="cardn pass"><div class="k">일치</div><div class="n">${C.cnt.ok}<small>/ ${C.rows.length}교과</small></div></div>
+      <div class="cardn diff"><div class="k">미해결 (불일치·한쪽에만)</div><div class="n">${C.unresolved}<small>${C.cnt.stale ? `재확인 ${C.cnt.stale}` : ''}</small></div></div>
+      <div class="cardn" style="border-left-color:#3b82f6"><div class="k">통과 (사유·확인)</div><div class="n">${C.cnt.pass}</div></div>
+      <div class="cardn ink"><div class="k">현원 / 기준정원 / 증감 총계 (배당표 · 예정표)</div><div class="n" style="font-size:16px">${T.uA}·${T.pA} / ${T.uB}·${T.pB} / ${T.uD}·${T.pD}</div></div></div>
+    <div class="cmp-wrap"><div style="flex:1;min-width:0">
+      <div style="overflow-x:auto" data-fit><table class="uc"><thead>
+        <tr><th rowspan="2" style="width:120px">교과</th><th colspan="3">당해년도 현원</th><th colspan="3">기준년도 정원</th><th colspan="3">증감 (현원−기준정원)</th><th rowspan="2" style="width:84px">상태</th></tr>
+        <tr><th class="u">배당표</th><th class="p">예정표</th><th>차</th><th class="u">배당표</th><th class="p">예정표</th><th>차</th><th class="u">배당표</th><th class="p">예정표(과부족)</th><th>차</th></tr></thead>
+        <tbody>${rows || '<tr><td colspan="11" style="padding:20px;color:var(--muted)">대조할 교과가 없습니다.</td></tr>'}</tbody>
+        <tfoot><tr><td class="l">총계</td><td${tc(T.uA, T.pA)}>${T.uA}</td><td${tc(T.uA, T.pA)}>${T.pA}</td><td>${T.uA !== T.pA ? signed(T.uA - T.pA) : ''}</td>
+          <td${tc(T.uB, T.pB)}>${T.uB}</td><td${tc(T.uB, T.pB)}>${T.pB}</td><td>${T.uB !== T.pB ? signed(T.uB - T.pB) : ''}</td>
+          <td${tc(T.uD, T.pD)}>${T.uD}</td><td${tc(T.uD, T.pD)}>${T.pD}</td><td>${T.uD !== T.pD ? signed(T.uD - T.pD) : ''}</td><td></td></tr></tfoot></table></div>
+      <div class="foot">예정표 쪽은 현원·기준정원이 모두 0인 교과를 빼고 비교합니다. 증감은 배당표 ‘증감(A-B)’와 예정표 ‘과부족 인원’을 비교합니다. 교과를 누르면 오른쪽에서 사유를 적고 확인할 수 있습니다.</div></div>
+      <aside class="cmp-panel">${unitPanel(C, sel)}</aside></div>`;
+}
+function unitPanel(C, r){
+  if (!r) return `<div class="pn-empty">표의 교과를 누르면 배당표와 예정표 값을 비교해 보여 주고, 사유를 적어 확인할 수 있습니다.</div>`;
+  const u = r.u, p = r.p, rv = state.unitReviews[C.name + '|' + r.k] || {};
+  const line = (lb, a, b) => `<tr><td>${lb}</td><td>${a == null ? '-' : a}</td><td>${b == null ? '-' : b}</td><td style="color:${a != null && b != null && a !== b ? '#b91c1c' : 'inherit'};font-weight:700">${a != null && b != null && a !== b ? signed(a - b) : ''}</td></tr>`;
+  let h = `<div class="pn-head"><div class="pn-t">${esc(r.label)}</div><div class="pn-sub">${esc(C.name)} · <span class="ust ${r.st}">${UST[r.st]}</span></div></div>
+    <table class="tp" style="margin:10px 0"><thead><tr><th></th><th>배당표</th><th>예정표</th><th>차</th></tr></thead><tbody>
+      ${line('당해년도 현원', u ? nz(u.A) : null, p ? p.A : null)}${line('기준년도 정원', u ? nz(u.B) : null, p ? p.B : null)}${line('증감', u ? nz(u.D) : null, p ? p.D : null)}
+      ${u ? `<tr><td>시수(학점)총계</td><td>${fmt(u.hours)}</td><td></td><td></td></tr><tr><td>계산교원수</td><td>${fmt(u.calc)}</td><td></td><td></td></tr>` : ''}</tbody></table>`;
+  if (r.st !== 'ok'){
+    const msg = { diff:'값이 다릅니다. 고친 배당표(또는 예정표)를 다시 올리거나, 사유를 적고 확인하세요.', stale:'사유를 적은 뒤 값이 바뀌었습니다. 다시 확인해 주세요.', pass:'사유 작성과 확인이 끝나 통과된 교과입니다.',
+      onlyU:'배당표에만 있는 교과입니다(예정표에 현원·정원 없음).', onlyP:'예정표에만 있는 교과입니다(배당표에 없음).' }[r.st];
+    h += `<div class="pn-status ${r.st === 'pass' ? 'pass' : r.st === 'stale' ? 'stale' : 'diff'}">${msg}</div>
+      <label class="pn-l" for="uReason">사유</label><textarea id="uReason" rows="3" placeholder="예: 11월 예정표 미반영, 학교 확인 완료">${esc(rv.reason || '')}</textarea>
+      <label class="pn-chk"><input type="checkbox" id="uCheck" ${rv.checked && r.st !== 'stale' ? 'checked' : ''}> 확인함 (사유 + 체크 = 통과)</label>
+      <div class="row"><button class="btn primary" id="uSave">저장</button>${state.unitReviews[C.name + '|' + r.k] ? '<button class="btn danger" id="uDel">사유 삭제</button>' : ''}</div>`;
+  }
+  h += `<div class="pn-tip">고칠 내용이 있으면 <button class="btn" id="uToFix" ${C.ek ? '' : 'disabled'}>학교별 수정사항에 추가</button></div>`;
+  return h;
+}
+function unitAllView(){
+  const names = unitNames();
+  const linked = new Set(names.map(unitEk).filter(Boolean));
+  const noUnit = allEntities().filter(e => e.level !== 'T' && getRec(e.sel, 'fin') && !linked.has(entKey(e.sel)));
+  const rows = names.map(n => { const C = unitCompare(n), ck = unitChecks(C.U).filter(c => !c.ok).length, T = C.tot;
+    return `<tr data-ugo="${esc(n)}"><td>${LEVELS[unitLevel(n)]}</td><td class="l">${esc(n)}</td><td>${C.rec ? '✔' : '<span class="ust onlyU">없음</span>'}</td><td>${C.rows.length}</td>
+      <td>${C.cnt.ok}</td><td class="${C.unresolved ? 'dx' : ''}">${C.rec ? C.unresolved : '-'}</td><td>${C.cnt.pass}</td>
+      <td${C.rec && T.uA !== T.pA ? ' class="x"' : ''}>${T.uA} / ${C.rec ? T.pA : '-'}</td><td${C.rec && T.uB !== T.pB ? ' class="x"' : ''}>${T.uB} / ${C.rec ? T.pB : '-'}</td><td${C.rec && T.uD !== T.pD ? ' class="x"' : ''}>${T.uD} / ${C.rec ? T.pD : '-'}</td>
+      <td class="${ck ? 'dx' : ''}">${ck ? ck + '건' : '✔'}</td></tr>`; }).join('');
+  return `<div style="overflow-x:auto" data-fit><table class="uc"><thead><tr><th>학교급</th><th>학교</th><th>최종 예정표</th><th>교과 수</th><th>일치</th><th>미해결</th><th>통과</th><th>현원 총계<br><small>배당표 / 예정표</small></th><th>기준정원 총계<br><small>배당표 / 예정표</small></th><th>증감 총계<br><small>배당표 / 예정표</small></th><th>배당표 검산</th></tr></thead>
+    <tbody>${rows || '<tr><td colspan="11" style="padding:20px;color:var(--muted)">올린 배당표가 없습니다.</td></tr>'}</tbody></table></div>
+    <div class="foot">학교를 누르면 대조 화면으로 갑니다.</div>
+    ${noUnit.length ? `<div class="u-card" style="margin-top:10px"><h3>배당표를 아직 올리지 않은 학교 <span class="pill">${noUnit.length}교</span></h3><div class="chips">${noUnit.map(e => `<span class="chip" style="padding-right:10px">${esc(e.name)}</span>`).join('')}</div></div>` : ''}`;
+}
+function unitStatusSheet(){
+  const aoa = [['학교급','학교','최종 예정표','교과 수','일치','미해결','통과','현원 총계(배당표)','현원 총계(예정표)','기준정원 총계(배당표)','기준정원 총계(예정표)','증감 총계(배당표)','증감 총계(예정표)','배당표 검산 확인']];
+  unitNames().forEach(n => { const C = unitCompare(n), T = C.tot, ck = unitChecks(C.U).filter(c => !c.ok);
+    aoa.push([LEVELS[unitLevel(n)], n, C.rec ? 'O' : '없음', C.rows.length, C.cnt.ok, C.rec ? C.unresolved : '', C.cnt.pass, T.uA, C.rec ? T.pA : '', T.uB, C.rec ? T.pB : '', T.uD, C.rec ? T.pD : '', ck.map(c => c.text).join(' / ')]); });
+  if (aoa.length === 1) aoa.push(['', '(배당표 없음)']);
+  const ws = XLSX.utils.aoa_to_sheet(aoa); ws['!cols'] = [{wch:8},{wch:20},{wch:10},...Array(10).fill({wch:10}),{wch:60}]; return ws;
+}
+function unitDetailSheet(names){
+  const aoa = [['학교','교과','현원(배당표)','현원(예정표)','기준정원(배당표)','기준정원(예정표)','증감(배당표)','증감(예정표 과부족)','상태','사유']];
+  names.forEach(n => { const C = unitCompare(n);
+    C.rows.forEach(r => aoa.push([n, r.label, r.u ? nz(r.u.A) : '', r.p ? r.p.A : '', r.u ? nz(r.u.B) : '', r.p ? r.p.B : '', r.u ? nz(r.u.D) : '', r.p ? r.p.D : '', C.rec ? UST[r.st] : '예정표 없음', r.rv ? r.rv.reason || '' : ''])); });
+  if (aoa.length === 1) aoa.push(['(자료 없음)']);
+  const ws = XLSX.utils.aoa_to_sheet(aoa); ws['!cols'] = [{wch:20},{wch:14},...Array(6).fill({wch:10}),{wch:10},{wch:50}]; return ws;
+}
+function unitSheet(name){
+  const U = state.units[name], T = U.totals;
+  const aoa = [[`${name} — 기준년도 교육과정편제 및 단위시간 배당표`], [`${U.office || ''} / 원본: ${U.fileName}`], [], ['정원(임용)과목','시수(학점)총계','계산교원수','현원(A)','기준년도 정원(B)','증감(A-B)'],
+    ...U.summary.map(r => [r.subj, r.hours ?? '', r.calc ?? '', r.A ?? '', r.B ?? '', r.D ?? '']), ['총계', T.hours ?? '', `평균시수 ${T.avg ?? ''}`, T.A ?? '', T.B ?? '', T.D ?? ''], [], ['[과목별 편제]'],
+    ['순번','과목','수업교사 정원(임용)과목','학년','수업학기','주당시수','학급수','연환산 주당시수(학점)계'], ...U.courses.map(c => [c.no, c.name, c.tsub, c.grade ?? '', c.sem ?? '', c.hrs ?? '', c.cls ?? '', c.annual ?? ''])];
+  const ws = XLSX.utils.aoa_to_sheet(aoa); ws['!cols'] = [{wch:16},{wch:26},{wch:18},{wch:8},{wch:10},{wch:10},{wch:8},{wch:12}]; return ws;
+}
+function unitDocHtml(name){
+  const U = state.units[name], T = U.totals, fN = v => v == null ? '' : Math.round(v * 100) / 100;
+  return `<div class="fdoc"><div class="fd-head"><div class="fd-k">기준년도 교육과정편제 및 단위시간 배당표</div><div class="fd-t">${esc(name)}</div><div class="fd-m">${esc(U.office || '')} · 원본 ${esc(U.fileName)}</div></div>
+    <table class="fd-tb"><thead><tr><th>정원(임용)과목</th><th>시수(학점)총계</th><th>계산교원수</th><th>현원(A)</th><th>기준년도 정원(B)</th><th>증감(A-B)</th></tr></thead>
+    <tbody>${U.summary.map(r => `<tr><td class="c">${esc(r.subj)}</td><td class="c">${fN(r.hours)}</td><td class="c">${fN(r.calc)}</td><td class="c">${fN(r.A)}</td><td class="c">${fN(r.B)}</td><td class="c">${fN(r.D)}</td></tr>`).join('')}
+    <tr><td class="c it">총계</td><td class="c it">${fN(T.hours)}</td><td class="c it">평균 ${fN(T.avg)}</td><td class="c it">${fN(T.A)}</td><td class="c it">${fN(T.B)}</td><td class="c it">${fN(T.D)}</td></tr></tbody></table>
+    <div class="fd-foot">교원조직 예정표 비교·검증</div></div>`;
+}
+async function unitUpload(files){
+  const log = [];
+  for (const f of [...files].filter(f => /\.(xlsx|xls)$/i.test(f.name))){
+    try { const U = await parseUnit(f), ex = !!state.units[U.school]; state.units[U.school] = U; ui.unitSel = U.school;
+      log.push(`✔ ${f.name} → ${U.school} (${ex ? '교체' : '신규'}, 교과 ${U.summary.length} · 과목 ${U.courses.length})`); }
+    catch(err){ log.push(`✖ ${f.name} → ${err.message}`); }
+  }
+  persist(); renderUnit();
+  if (log.length) toast(`<b>배당표 올리기</b><ul>${log.map(x => `<li>${esc(x)}</li>`).join('')}</ul>`, { err:log.some(x => x[0] === '✖'), sticky:log.length > 3 || log.some(x => x[0] === '✖') });
+}
+$('#unitInput').addEventListener('change', e => { const fs = e.target.files; if (fs && fs.length) unitUpload([...fs]); e.target.value = ''; });
+FULL.addEventListener('click', e => {
+  if (ui.tab !== 'unit') return;
+  const t = e.target, b = t.closest('button, tr[data-ufilter], tr[data-urow], tr[data-ugo]'); if (!b) return;
+  const name = ui.unitSel, stamp = () => { const d = new Date(), p = n => String(n).padStart(2, '0'); return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}`; };
+  if (b.id === 'unitUp') return $('#unitInput').click();
+  if (b.dataset.unit){ ui.unitSel = b.dataset.unit; ui.unitRow = null; ui.unitFilter = null; if (ui.unitSub === 'all') ui.unitSub = 'cmp'; renderUnit(); return; }
+  if (b.dataset.usub){ ui.unitSub = b.dataset.usub; renderUnit(); return; }
+  if (b.dataset.ugo){ ui.unitSel = b.dataset.ugo; ui.unitSub = 'cmp'; ui.unitRow = null; renderUnit(); return; }
+  if (b.dataset.ufilter != null){ ui.unitFilter = b.dataset.ufilter && b.dataset.ufilter !== ui.unitFilter ? b.dataset.ufilter : null; renderUnit(); return; }
+  if (b.dataset.urow){ ui.unitRow = b.dataset.urow; renderUnit(); return; }
+  if (b.id === 'unitExBtn'){ ui.unitExOpen = !ui.unitExOpen; renderUnit(); return; }
+  if (b.id === 'unitAllXlsx'){ const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, unitStatusSheet(), '대조 현황'); XLSX.utils.book_append_sheet(wb, unitDetailSheet(unitNames()), '대조 상세'); saveBook(wb, `단위시간배당표_대조_전체_${stamp()}.xlsx`); return; }
+  if (!name) return;
+  if (b.id === 'unitXlsx'){ const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, unitSheet(name), '배당표 정리'); saveBook(wb, safeName(`단위시간배당표_${name}_${stamp()}.xlsx`)); return; }
+  if (b.id === 'unitCmpXlsx'){ const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, unitDetailSheet([name]), '대조'); saveBook(wb, safeName(`배당표대조_${name}_${stamp()}.xlsx`)); return; }
+  if (b.id === 'unitPrint'){ const old = $('#batchPrint'); if (old) old.remove(); const box = document.createElement('div'); box.id = 'batchPrint'; box.className = 'portrait';
+    box.innerHTML = `<div class="bpage">${unitDocHtml(name)}</div>`; document.body.appendChild(box); document.body.classList.add('batch-print');
+    setTimeout(() => { window.print(); setTimeout(() => { box.remove(); document.body.classList.remove('batch-print'); }, 300); }, 50); return; }
+  if (b.id === 'unitDel'){ if (!confirm(`${name} 배당표를 삭제할까요? (적어 둔 사유는 남습니다)`)) return; delete state.units[name]; ui.unitSel = null; persist(); renderUnit(); return; }
+  if (b.id === 'uSave' || b.id === 'uDel' || b.id === 'uToFix'){
+    const C = unitCompare(name), r = C.rows.find(x => x.k === ui.unitRow); if (!r) return;
+    const key = name + '|' + r.k;
+    if (b.id === 'uDel'){ if (!confirm('이 교과의 사유를 삭제할까요?')) return; delete state.unitReviews[key]; }
+    else if (b.id === 'uSave'){ const reason = $('#uReason').value.trim(), checked = $('#uCheck').checked;
+      if (checked && !reason){ alert('사유를 입력해야 통과 처리됩니다.'); return; }
+      state.unitReviews[key] = { reason, checked, snap:r.snap, updatedAt:new Date().toISOString() }; }
+    else { if (!C.ek) return;
+      const u = r.u, p = r.p, part = (lb, a, c) => a == null || c == null ? '' : (a === c ? '' : `${lb} 배당표 ${a} / 예정표 ${c}`);
+      const txt = r.st === 'onlyP' ? `배당표에 없음 (예정표 현원 ${p.A}, 기준정원 ${p.B}, 증감 ${p.D})`
+        : r.st === 'onlyU' ? `예정표에 없음 (배당표 현원 ${nz(u.A)}, 기준정원 ${nz(u.B)}, 증감 ${nz(u.D)})`
+        : [part('현원', u && nz(u.A), p && p.A), part('기준정원', u && nz(u.B), p && p.B), part('증감', u && nz(u.D), p && p.D)].filter(Boolean).join(', ') || UST[r.st];
+      (state.fixes[C.ek] = state.fixes[C.ek] || []).push({ id:uid(), item:`단위시간 배당표 대조 · ${r.label}`, text:txt, createdAt:new Date().toISOString() });
+      toast(`<b>학교별 수정사항에 추가했습니다.</b><br>${esc(r.label)}: ${esc(txt)}`); }
+    persist(); renderUnit(); return;
+  }
+});
+FULL.addEventListener('change', e => {
+  if (ui.tab !== 'unit') return;
+  const t = e.target;
+  if (t.dataset.ulink != null){ state.unitLink[t.dataset.ulink] = t.value; persist(); renderUnit(); return; }
+  if (t.dataset.uex != null){ const s = t.dataset.uex, ex = new Set(state.unitExclude || []); if (t.checked) ex.add(s); else ex.delete(s); state.unitExclude = [...ex]; persist(); renderUnit(); }
+});
+FULL.addEventListener('input', e => {
+  if (ui.tab !== 'unit' || e.target.id !== 'unitQ') return;
+  const pos = e.target.selectionStart; ui.unitQ = e.target.value;
+  clearTimeout(fixTimer); setTimeout(() => { renderUnit(); const n = $('#unitQ'); if (n){ n.focus(); n.setSelectionRange(pos, pos); } }, 200);
+});
+// 배당표 탭에서는 끌어다 놓아도 올라가게
+FULL.addEventListener('dragover', e => { if (ui.tab === 'unit') e.preventDefault(); });
+FULL.addEventListener('drop', e => { if (ui.tab !== 'unit') return; e.preventDefault(); if (e.dataTransfer.files.length) unitUpload([...e.dataTransfer.files]); });
 
 /* ===================== 비교 재실행 · 알림 · 실시간 동기화 ===================== */
 let toastTimer = null;
