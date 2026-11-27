@@ -431,6 +431,12 @@ table.fx td.act{width:96px;white-space:nowrap;padding-top:9px}
 .fx-batch{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:0 0 10px;padding:8px 10px;border:1px dashed #c7d2fe;background:#f5f7ff;border-radius:10px;font-size:13px}
 .fx-batch select{padding:5px 8px;border:1px solid var(--line);border-radius:8px;background:#fff}
 table.fx td.dt{font-size:12px;color:var(--muted);padding-top:12px;white-space:nowrap}
+table.fx td.dn{width:52px;text-align:center;padding-top:12px}
+table.fx td.dn input{width:17px;height:17px;cursor:pointer;accent-color:#16a34a}
+table.fx tr.done input:not([type=checkbox]),table.fx tr.done textarea{text-decoration:line-through;text-decoration-thickness:1.5px;color:#9ca3af;background:#f9fafb}
+table.fx tr.done td.no{color:#c3c8cf;text-decoration:line-through}
+.fx-cnt.done{background:#dcfce7;color:#166534}
+.fd-done{text-decoration:line-through;color:#888}
 table.fx td.dt small{display:block;font-size:11px;color:#9ca3af}
 /* 출력·PDF 문서 */
 .fdoc{page:fixpage;background:#fff;color:#111;font-family:"Malgun Gothic","맑은 고딕","Noto Sans KR","Noto Sans CJK KR",sans-serif;font-size:12.5px;line-height:1.55}
@@ -2391,9 +2397,10 @@ const WEEK = '일월화수목금토';
 const dayLabel = d => { if (!d) return '날짜 없음'; const x = new Date(d + 'T00:00:00'); return `${d.slice(5).replace('-', '.')} (${WEEK[x.getDay()]})`; };
 const inDate = r => ui.fixDate === 'all' || fixDay(r) === ui.fixDate;
 const datedFix = ek => filledFix(ek).filter(inDate);
+const openFix = ek => datedFix(ek).filter(r => !r.done);   // 수정 완료(체크)는 건수에서 뺌
 function fixDates(){
   const m = new Map();
-  Object.values(state.fixes).forEach(rows => rows.forEach(r => { if (String(r.item || '').trim() || String(r.text || '').trim()){ const d = fixDay(r); m.set(d, (m.get(d) || 0) + 1); } }));
+  Object.values(state.fixes).forEach(rows => rows.forEach(r => { if (String(r.item || '').trim() || String(r.text || '').trim()){ const d = fixDay(r); m.set(d, (m.get(d) || 0) + (r.done ? 0 : 1)); } }));
   return [...m.entries()].sort((a, b) => b[0].localeCompare(a[0]));
 }
 // 목록: 업로드된 학교·전체 + (이름이 바뀌어) 목록에 없는 학교의 수정사항
@@ -2425,14 +2432,14 @@ function renderFix(){
   for (const lv of ['T','M','H','E','X']){
     const list = ents.filter(e => e.level === lv && (!ui.fixOnly || datedFix(e.ek).length) && (!q || e.name.includes(q)));
     if (!list.length) continue;
-    side += `<div class="sb-sec"><span>${FX_LEVEL[lv]}</span><span>${list.length}</span></div>` + list.map(e => { const n = datedFix(e.ek).length;
-      return `<button class="fx-item${e.ek === ui.fixSel ? ' active' : ''}" data-fxent="${esc(e.ek)}" title="${esc(e.name)}"><span class="nm">${esc(e.name)}</span>${n ? `<span class="fx-cnt">${n}</span>` : ''}</button>`; }).join('');
+    side += `<div class="sb-sec"><span>${FX_LEVEL[lv]}</span><span>${list.length}</span></div>` + list.map(e => { const n = openFix(e.ek).length, all = datedFix(e.ek).length;
+      return `<button class="fx-item${e.ek === ui.fixSel ? ' active' : ''}" data-fxent="${esc(e.ek)}" title="${esc(e.name)}"><span class="nm">${esc(e.name)}</span>${n ? `<span class="fx-cnt">${n}</span>` : all ? '<span class="fx-cnt done" title="모두 수정 완료">✔</span>' : ''}</button>`; }).join('');
   }
   if (!side) side = `<div class="sb-empty">${ents.length ? '조건에 맞는 학교가 없습니다.' : '⚙ 설정에서 파일을 업로드하면 학교 목록이 나타납니다.'}</div>`;
   const cur = ents.find(e => e.ek === ui.fixSel);
   const allRows = cur ? fixRows(cur.ek) : [];
   const rows = allRows.filter(r => inDate(r) || !(String(r.item || '').trim() || String(r.text || '').trim()));   // 막 추가한 빈 줄은 항상 보이게
-  const fe = fixEntities(ui.fixScope), totalRows = fe.reduce((a, e) => a + datedFix(e.ek).length, 0);
+  const fe = fixEntities(ui.fixScope), totalRows = fe.reduce((a, e) => a + openFix(e.ek).length, 0);
   const allCnt = dates.reduce((a, [, n]) => a + n, 0);
   const items = fixItemList();
   const dateBar = `<div class="fx-dates"><span class="lg">저장한 날짜</span>
@@ -2442,7 +2449,7 @@ function renderFix(){
   if (!cur) main = `<div class="fx-card"><div class="fx-empty">왼쪽에서 학교를 고르세요.</div></div>`;
   else {
     const scopeName = { all:'전체', T:'전체 파일', M:'중학교', H:'고등학교' }[ui.fixScope];
-    main = `<div class="fx-head"><h2>${esc(cur.name)}</h2><span class="pill">${FX_LEVEL[cur.level]}</span><span class="pill" style="background:#e0e7ff;color:#3730a3">수정사항 ${datedFix(cur.ek).length}건${ui.fixDate === 'all' ? '' : ` · ${dayLabel(ui.fixDate)}`}</span></div>
+    main = `<div class="fx-head"><h2>${esc(cur.name)}</h2><span class="pill">${FX_LEVEL[cur.level]}</span><span class="pill" style="background:#e0e7ff;color:#3730a3">수정사항 ${openFix(cur.ek).length}건${ui.fixDate === 'all' ? '' : ` · ${dayLabel(ui.fixDate)}`}</span>${(() => { const k = datedFix(cur.ek).length - openFix(cur.ek).length; return k ? `<span class="pill" style="text-decoration:line-through">수정 완료 ${k}건</span>` : ''; })()}</div>
       <div class="fx-bar">
         <button class="btn primary" id="fxAdd">＋ 수정사항 추가</button>
         <span style="flex:1"></span>
@@ -2458,15 +2465,15 @@ function renderFix(){
         <button class="btn" id="fxPdfEach" ${fe.length ? '' : 'disabled'} title="학교마다 PDF 파일을 따로 다운로드">학교별 PDF (각각)</button>
         <button class="btn" id="fxXlsx" ${fe.length ? '' : 'disabled'}>엑셀</button></div>
       <datalist id="fxItems">${items.map(t => `<option value="${esc(t)}">`).join('')}</datalist>
-      <div class="fx-card"><table class="fx"><thead><tr><th style="width:44px;text-align:center">번호</th><th style="width:22%">항목</th><th>수정 내용</th><th style="width:96px">저장한 날</th><th style="width:96px"></th></tr></thead><tbody>
-      ${rows.map((r, i) => `<tr data-fxrow="${r.id}"><td class="no">${i + 1}</td>
+      <div class="fx-card"><table class="fx"><thead><tr><th style="width:52px;text-align:center" title="수정 완료되면 체크">완료</th><th style="width:44px;text-align:center">번호</th><th style="width:22%">항목</th><th>수정 내용</th><th style="width:96px">저장한 날</th><th style="width:96px"></th></tr></thead><tbody>
+      ${rows.map((r, i) => `<tr data-fxrow="${r.id}" class="${r.done ? 'done' : ''}"><td class="dn"><input type="checkbox" data-fxdone="${r.id}" ${r.done ? 'checked' : ''} title="수정 완료"></td><td class="no">${i + 1}</td>
         <td><input data-fxitem="${r.id}" list="fxItems" value="${esc(r.item || '')}" class="${r.item ? '' : 'emp'}" placeholder="항목 (예: 국어 정원)" autocomplete="off"></td>
         <td><textarea data-fxtext="${r.id}" rows="1" placeholder="수정할 내용">${esc(r.text || '')}</textarea></td>
         <td class="dt" data-fxdt="${r.id}">${dayLabel(fixDay(r))}<small>${fmtTime(r.updatedAt || r.createdAt).slice(11)}</small></td>
         <td class="act"><button class="icon-s" data-fxmove="${r.id}|-1" title="위로" ${i ? '' : 'disabled'}>▲</button> <button class="icon-s" data-fxmove="${r.id}|1" title="아래로" ${i < rows.length - 1 ? '' : 'disabled'}>▼</button> <button class="rdel" data-fxdel="${r.id}" title="삭제" style="border:none;background:none;color:#9ca3af;font-size:16px">×</button></td></tr>`).join('')
-        || `<tr><td colspan="5" class="fx-empty">${allRows.length ? '선택한 날짜에 저장한 수정사항이 없습니다.' : '아직 수정사항이 없습니다. <b>＋ 수정사항 추가</b>를 눌러 항목과 내용을 적으세요.'}</td></tr>`}
+        || `<tr><td colspan="6" class="fx-empty">${allRows.length ? '선택한 날짜에 저장한 수정사항이 없습니다.' : '아직 수정사항이 없습니다. <b>＋ 수정사항 추가</b>를 눌러 항목과 내용을 적으세요.'}</td></tr>`}
       </tbody></table></div>
-      <div class="foot">‘저장한 날’은 마지막으로 고친 날입니다. 항목은 한 번 쓰면 다음부터 목록에서 고를 수 있고, 항목에서 Enter를 누르면 내용 칸으로 넘어갑니다. 자동 저장됩니다.</div>`;
+      <div class="foot">수정이 끝난 줄은 ‘완료’에 체크하면 삭선으로 표시되고 건수에서 빠집니다(체크를 풀면 다시 셉니다). ‘저장한 날’은 마지막으로 고친 날입니다. 항목은 한 번 쓰면 다음부터 목록에서 고를 수 있고, 항목에서 Enter를 누르면 내용 칸으로 넘어갑니다. 자동 저장됩니다.</div>`;
   }
   FULL.innerHTML = `<div class="fx-wrap"><aside class="fx-side">
       <input class="search" id="fxQ" placeholder="학교 검색" value="${esc(ui.fixQ)}">
@@ -2477,14 +2484,14 @@ function renderFix(){
   FULL.scrollTop = sy;
 }
 function fixDocHtml(e){
-  const rows = datedFix(e.ek), d = new Date();
+  const rows = datedFix(e.ek), d = new Date(), nOpen = rows.filter(r => !r.done).length, nDone = rows.length - nOpen;
   const groups = []; rows.forEach(r => { const k = String(r.item || '').trim() || '(항목 없음)'; let g = groups.find(x => x.k === k); if (!g){ g = { k, list:[] }; groups.push(g); } g.list.push(r); });
   let no = 0, body = '';
-  groups.forEach(g => g.list.forEach((r, i) => { no++;
-    body += `<tr><td class="c">${no}</td>${i === 0 ? `<td class="it" rowspan="${g.list.length}">${esc(g.k)}</td>` : ''}<td class="tx">${esc(r.text || '')}</td><td class="c" style="font-size:11px">${fixDay(r).slice(5).replace('-', '.')}</td></tr>`; }));
+  groups.forEach(g => g.list.forEach((r, i) => { no++; const ds = r.done ? ' fd-done' : '', allDone = g.list.every(x => x.done);
+    body += `<tr><td class="c${ds}">${no}</td>${i === 0 ? `<td class="it${allDone ? ' fd-done' : ''}" rowspan="${g.list.length}">${esc(g.k)}</td>` : ''}<td class="tx${ds}">${esc(r.text || '')}</td><td class="c" style="font-size:11px">${r.done ? '완료' : fixDay(r).slice(5).replace('-', '.')}</td></tr>`; }));
   const range = ui.fixDate === 'all' ? '전체 수정사항' : `${ui.fixDate.replace(/-/g, '. ')}. 저장분`;
   return `<div class="fdoc"><div class="fd-head"><div class="fd-k">교원조직 예정표 수정사항</div><div class="fd-t">${esc(e.name)}</div>
-      <div class="fd-m">${FX_LEVEL[e.level] || ''} · ${range} · 총 ${rows.length}건 · 출력일 ${d.getFullYear()}. ${p2(d.getMonth() + 1)}. ${p2(d.getDate())}.</div></div>
+      <div class="fd-m">${FX_LEVEL[e.level] || ''} · ${range} · 총 ${nOpen}건${nDone ? ` (수정 완료 ${nDone}건은 삭선 표시)` : ''} · 출력일 ${d.getFullYear()}. ${p2(d.getMonth() + 1)}. ${p2(d.getDate())}.</div></div>
     ${rows.length ? `<table class="fd-tb"><colgroup><col style="width:12mm"><col style="width:40mm"><col><col style="width:16mm"></colgroup><thead><tr><th>번호</th><th>항목</th><th>수정 내용</th><th>저장일</th></tr></thead><tbody>${body}</tbody></table>` : '<div class="fd-none">수정사항 없음</div>'}
     <div class="fd-foot">교원조직 예정표 비교·검증</div></div>`;
 }
@@ -2547,10 +2554,10 @@ async function fixPdfEach(ents, asZip){
   } catch(err){ toast(`<b>PDF를 만들지 못했습니다.</b><br>${esc(err.message || err)}`, { err:true, sticky:true }); }
 }
 function fixSheet(ents){
-  const aoa = [['학교급','학교/구분','번호','항목','수정 내용','저장한 날','저장 시각']];
-  ents.forEach(e => datedFix(e.ek).forEach((r, i) => aoa.push([FX_LEVEL[e.level], e.name, i + 1, r.item || '', r.text || '', fixDay(r), fmtTime(r.updatedAt || r.createdAt)])));
+  const aoa = [['학교급','학교/구분','번호','항목','수정 내용','저장한 날','저장 시각','수정 완료']];
+  ents.forEach(e => datedFix(e.ek).forEach((r, i) => aoa.push([FX_LEVEL[e.level], e.name, i + 1, r.item || '', r.text || '', fixDay(r), fmtTime(r.updatedAt || r.createdAt), r.done ? `완료 ${fmtTime(r.doneAt)}` : ''])));
   if (aoa.length === 1) aoa.push(['', '(수정사항 없음)']);
-  const ws = XLSX.utils.aoa_to_sheet(aoa); ws['!cols'] = [{wch:10},{wch:18},{wch:6},{wch:20},{wch:70},{wch:12},{wch:16}];
+  const ws = XLSX.utils.aoa_to_sheet(aoa); ws['!cols'] = [{wch:10},{wch:18},{wch:6},{wch:20},{wch:70},{wch:12},{wch:16},{wch:20}];
   return ws;
 }
 function fixFind(id){ const rows = fixRows(ui.fixSel); return { rows, r:rows.find(x => x.id === id) }; }
@@ -2609,11 +2616,14 @@ FULL.addEventListener('change', e => {
   const t = e.target;
   if (t.id === 'fxOnly'){ ui.fixOnly = t.checked; renderFix(); return; }
   if (t.id === 'fxScope'){ ui.fixScope = t.value; renderFix(); return; }
+  if (t.dataset.fxdone){ const { r } = fixFind(t.dataset.fxdone); if (!r) return;
+    r.done = t.checked; if (t.checked) r.doneAt = new Date().toISOString(); else delete r.doneAt;   // 저장한 날은 그대로
+    persist(); renderFix(); return; }
   if (t.dataset.fxitem || t.dataset.fxtext){   // 다 쓰면 목록·날짜 건수 갱신
     if (t.dataset.fxitem){ const v = t.value.trim(); if (v) state.fixItems = [v, ...(state.fixItems || []).filter(x => x !== v)].slice(0, 80); }
     persist();
     const dl = $('#fxItems'); if (dl) dl.innerHTML = fixItemList().map(x => `<option value="${esc(x)}">`).join('');
-    const cnt = FULL.querySelector(`.fx-item.active .fx-cnt`), n = datedFix(ui.fixSel).length;
+    const cnt = FULL.querySelector(`.fx-item.active .fx-cnt`), n = openFix(ui.fixSel).length;
     if (cnt) cnt.textContent = n;
     const bar = FULL.querySelector('.fx-dates'); if (bar){ const all = fixDates();
       bar.innerHTML = `<span class="lg">저장한 날짜</span><button class="dchip${ui.fixDate === 'all' ? ' on' : ''}" data-fxdate="all">전체 <b>${all.reduce((a, [, k]) => a + k, 0)}</b></button>` +
