@@ -1393,7 +1393,7 @@ function recMaps(rec){
 function cellStatus(ek, label, s, f, p){
   if (same(f, p)) return 'same';
   const r = state.reviews[cellKey(ek, label, s)];
-  if (!r || !r.checked || !String(r.reason || '').trim()) return 'diff';
+  if (!r || !r.checked) return 'diff';   // 확인 체크만으로 통과 (사유는 선택)
   if (String(nz(r.fin)) !== String(nz(f)) || String(nz(r.sep)) !== String(nz(p))) return 'stale';
   return 'pass';
 }
@@ -1454,7 +1454,7 @@ function renderCompare(){
     <div class="seg">${[['delta','차이(최종−9월)'],['fin','최종값'],['sep','9월값']].map(([k, v]) => `<button data-cmode="${k}" class="${ui.cmpMode === k ? 'on' : ''}">${v}</button>`).join('')}</div>
     <label class="chk"><input type="checkbox" id="showAll" ${ui.showAll ? 'checked' : ''}>정원·현원 0인 교과도 보기</label>
     <span class="spacer" style="flex:1"></span>
-    <span class="lg"><i class="sw diff"></i>차이(미해결)<i class="sw stale"></i>재확인 필요<i class="sw pass"></i>통과(사유·확인)</span>
+    <span class="lg"><i class="sw diff"></i>차이(미해결)<i class="sw stale"></i>재확인 필요<i class="sw pass"></i>통과(확인)</span>
     <button class="btn" id="btnCmpXlsx" ${m.missing ? 'disabled' : ''}>엑셀 다운로드</button>
     <button class="btn primary" id="btnPrint" ${m.missing ? 'disabled' : ''}>A4 인쇄</button>
     <button class="btn" id="btnBatch" title="여러 학교·전체를 한 번에 엑셀/인쇄">일괄 출력</button></div>`;
@@ -1475,7 +1475,7 @@ function cmpPageInner(m, title, mode, cell){
   const cards = `<div class="cards">
     <div class="cardn ink"><div class="k">차이 발생 칸</div><div class="n">${total}<small>칸</small></div></div>
     <div class="cardn diff"><div class="k">미해결</div><div class="n">${m.cnt.diff + m.cnt.stale}<small>${m.cnt.stale ? `재확인 ${m.cnt.stale}` : ''}</small></div></div>
-    <div class="cardn pass"><div class="k">통과 (사유·확인)</div><div class="n">${m.cnt.pass}</div></div>
+    <div class="cardn pass"><div class="k">통과 (확인)</div><div class="n">${m.cnt.pass}</div></div>
     <div class="cardn ink"><div class="k">차이 수치 합계 (절대값)</div><div class="n">${sumAbs}<small>명</small></div></div></div>`;
   const C = cell;
   const cellTxt = (c, numeric) => {
@@ -1517,7 +1517,7 @@ function cmpPageInner(m, title, mode, cell){
     <td class="tot stk r3"></td><td class="ex stk r2">${total || ''}</td><td class="ex stk r1 ${tNet > 0 ? 'pos' : tNet < 0 ? 'neg' : ''}">${tNet ? signed(tNet) : ''}</td><td class="ex stk r0">${sumAbs || ''}</td></tr></tfoot></table></div>`;
   if (m.info.length) t += `<div class="cmp-info">${m.info.map(x => { const d = String(x.f ?? '') !== String(x.p ?? '');
       return `<div><span style="color:var(--muted)">${esc(x.label)}</span> <span class="${d ? 'd' : ''}">${esc(x.p ?? '-')} → ${esc(x.f ?? '-')}</span></div>`; }).join('')}</div>`;
-  t += `<div class="foot">셀을 누르면 오른쪽에 9월·최종 수치가 나옵니다. 차이 칸은 데이터를 고쳐 다시 올리거나, 사유를 적고 ‘확인함’을 체크하면 통과(초록)로 바뀝니다. 최종값·9월값 화면에서는 칸마다 메모를 남길 수 있고(빨간 삼각형), 마우스를 올리면 내용이 보입니다.</div>`;
+  t += `<div class="foot">셀을 누르면 오른쪽에 9월·최종 수치가 나옵니다. 차이 칸은 데이터를 고쳐 다시 올리거나, ‘확인함’을 체크하고 저장하면 통과(초록)로 바뀝니다(사유는 선택). 최종값·9월값 화면에서는 칸마다 메모를 남길 수 있고(빨간 삼각형), 마우스를 올리면 내용이 보입니다.</div>`;
   return t;
 }
 
@@ -1536,13 +1536,13 @@ function panelHtml(m){
     if (ui.cmpMode === 'fin' || ui.cmpMode === 'sep')
       h += memoEditorHtml({ ctx:ui.cmpMode, ek:m.ek, label:row.label, s:c.s, ent:entName(ui.sel) });
     if (c.st !== 'same'){
-      const msg = { diff:'수정한 엑셀을 다시 올리거나, 사유를 적고 ‘확인함’을 체크하세요.',
-                    stale:`사유를 적은 뒤 값이 바뀌었습니다 (당시 9월 ${esc(r.sep)} → 최종 ${esc(r.fin)}). 다시 확인해 주세요.`,
-                    pass:'사유 작성과 확인이 끝나 통과된 칸입니다.' }[c.st];
+      const msg = { diff:'수정한 엑셀을 다시 올리거나, ‘확인함’을 체크하고 저장하세요. 사유는 적어도 되고 비워도 됩니다.',
+                    stale:`확인한 뒤 값이 바뀌었습니다 (당시 9월 ${esc(r.sep)} → 최종 ${esc(r.fin)}). 다시 확인해 주세요.`,
+                    pass:'확인이 끝나 통과된 칸입니다.' }[c.st];
       h += `<div class="pn-status ${c.st}">${msg}</div>
         <label class="pn-l" for="pnReason">사유</label>
         <textarea id="pnReason" rows="4" placeholder="예: 10월 학급 증설로 정원 1명 증원">${esc(r.reason || '')}</textarea>
-        <label class="pn-chk"><input type="checkbox" id="pnCheck" ${r.checked && c.st !== 'stale' ? 'checked' : ''}> 확인함 (사유 + 체크 = 통과)</label>
+        <label class="pn-chk"><input type="checkbox" id="pnCheck" ${r.checked && c.st !== 'stale' ? 'checked' : ''}> 확인함 (체크하고 저장하면 통과 · 사유는 선택)</label>
         <div class="row"><button class="btn primary" id="pnSave">저장</button>${state.reviews[k] ? '<button class="btn danger" id="pnDel">사유 삭제</button>' : ''}</div>
         ${r.updatedAt ? `<div class="pn-time">마지막 저장 ${fmtTime(r.updatedAt)}</div>` : ''}
         <p class="pn-tip">데이터 오류라면 ⚙ 설정에서 수정한 엑셀을 같은 그룹에 다시 올리면 바로 반영됩니다.</p>`;
@@ -1578,7 +1578,6 @@ $('#content').addEventListener('click', e => {
     if (e.target.id === 'pnDel'){ if (!confirm('이 칸의 사유를 삭제할까요?')) return; delete state.reviews[k]; }
     else {
       const reason = $('#pnReason').value.trim(), checked = $('#pnCheck').checked;
-      if (checked && !reason){ alert('사유를 입력해야 통과 처리됩니다.'); return; }
       state.reviews[k] = { reason, checked, fin:nz(c.f), sep:nz(c.p), ent:entName(ui.sel), label:row.label, s:c.s, updatedAt:new Date().toISOString() };
     }
     persist(); renderSidebar(); renderContent();
@@ -1623,7 +1622,7 @@ function renderPass(){
     <div class="cards">
       <div class="cardn ink"><div class="k">비교 가능 대상</div><div class="n">${comparable}<small>/ ${totalEnt}</small></div></div>
       <div class="cardn ink"><div class="k">차이 발생 칸</div><div class="n">${list.length}</div></div>
-      <div class="cardn pass"><div class="k">통과 (사유·확인)</div><div class="n">${n.pass}</div></div>
+      <div class="cardn pass"><div class="k">통과 (확인)</div><div class="n">${n.pass}</div></div>
       <div class="cardn diff"><div class="k">미해결</div><div class="n">${n.diff}</div></div>
       <div class="cardn stale"><div class="k">재확인 필요</div><div class="n">${n.stale}</div></div></div>
     <div class="toolbar">
@@ -3060,7 +3059,7 @@ function unitCompare(name){
     let st = !rec ? 'onlyU' : !u ? 'onlyP' : !p ? 'onlyU' : (nz(u.A) === p.A && nz(u.B) === p.B && nz(u.D) === p.D ? 'ok' : 'diff');
     const snap = JSON.stringify([u && [nz(u.A), nz(u.B), nz(u.D)], p && [p.A, p.B, p.D]]);
     const rv = state.unitReviews[name + '|' + k];
-    if (st !== 'ok' && rec && rv && rv.checked && String(rv.reason || '').trim()) st = rv.snap === snap ? 'pass' : 'stale';
+    if (st !== 'ok' && rec && rv && rv.checked) st = rv.snap === snap ? 'pass' : 'stale';
     res.cnt[st]++;
     if (u){ res.tot.uA += nz(u.A); res.tot.uB += nz(u.B); res.tot.uD += nz(u.D); }
     if (p){ res.tot.pA += p.A; res.tot.pB += p.B; res.tot.pD += p.D; }
@@ -3071,7 +3070,7 @@ function unitCompare(name){
   res.unresolved = res.rows.filter(r => ['diff','stale','onlyU','onlyP'].includes(r.st) && res.rec).length;
   return res;
 }
-const UST = { ok:'일치', diff:'불일치', pass:'통과(사유)', stale:'재확인', onlyU:'배당표에만', onlyP:'예정표에만' };
+const UST = { ok:'일치', diff:'불일치', pass:'통과(확인)', stale:'재확인', onlyU:'배당표에만', onlyP:'예정표에만' };
 function unitNames(){ return Object.keys(state.units).sort((a, b) => a.localeCompare(b, 'ko')); }
 function renderUnit(){
   const sy = FULL.scrollTop, names = unitNames();
@@ -3148,7 +3147,7 @@ function unitCmpView(name){
   return head + exPanel + `<div class="cards">
       <div class="cardn pass"><div class="k">일치</div><div class="n">${C.cnt.ok}<small>/ ${C.rows.length}교과</small></div></div>
       <div class="cardn diff"><div class="k">미해결 (불일치·한쪽에만)</div><div class="n">${C.unresolved}<small>${C.cnt.stale ? `재확인 ${C.cnt.stale}` : ''}</small></div></div>
-      <div class="cardn" style="border-left-color:#3b82f6"><div class="k">통과 (사유·확인)</div><div class="n">${C.cnt.pass}</div></div>
+      <div class="cardn" style="border-left-color:#3b82f6"><div class="k">통과 (확인)</div><div class="n">${C.cnt.pass}</div></div>
       <div class="cardn ink"><div class="k">현원 / 기준정원 / 증감 총계 (배당표 · 예정표)</div><div class="n" style="font-size:16px">${T.uA}·${T.pA} / ${T.uB}·${T.pB} / ${T.uD}·${T.pD}</div></div></div>
     <div class="cmp-wrap"><div style="flex:1;min-width:0">
       <div style="overflow-x:auto" data-fit><table class="uc"><thead>
@@ -3158,11 +3157,11 @@ function unitCmpView(name){
         <tfoot><tr><td class="l">총계</td><td${tc(T.uA, T.pA)}>${T.uA}</td><td${tc(T.uA, T.pA)}>${T.pA}</td><td>${T.uA !== T.pA ? signed(T.uA - T.pA) : ''}</td>
           <td${tc(T.uB, T.pB)}>${T.uB}</td><td${tc(T.uB, T.pB)}>${T.pB}</td><td>${T.uB !== T.pB ? signed(T.uB - T.pB) : ''}</td>
           <td${tc(T.uD, T.pD)}>${T.uD}</td><td${tc(T.uD, T.pD)}>${T.pD}</td><td>${T.uD !== T.pD ? signed(T.uD - T.pD) : ''}</td><td></td></tr></tfoot></table></div>
-      <div class="foot">예정표 쪽은 현원·기준정원이 모두 0인 교과를 빼고 비교합니다. 증감은 배당표 ‘증감(A-B)’와 예정표 ‘과부족 인원’을 비교합니다. 교과를 누르면 오른쪽에서 사유를 적고 확인할 수 있습니다.</div></div>
+      <div class="foot">예정표 쪽은 현원·기준정원이 모두 0인 교과를 빼고 비교합니다. 증감은 배당표 ‘증감(A-B)’와 예정표 ‘과부족 인원’을 비교합니다. 교과를 누르면 오른쪽에서 ‘확인함’을 체크해 통과시킬 수 있습니다(사유는 선택).</div></div>
       <aside class="cmp-panel">${unitPanel(C, sel)}</aside></div>`;
 }
 function unitPanel(C, r){
-  if (!r) return `<div class="pn-empty">표의 교과를 누르면 배당표와 예정표 값을 비교해 보여 주고, 사유를 적어 확인할 수 있습니다.</div>`;
+  if (!r) return `<div class="pn-empty">표의 교과를 누르면 배당표와 예정표 값을 비교해 보여 주고, 확인 체크로 통과시킬 수 있습니다.</div>`;
   const u = r.u, p = r.p, rv = state.unitReviews[C.name + '|' + r.k] || {};
   const line = (lb, a, b) => `<tr><td>${lb}</td><td>${a == null ? '-' : a}</td><td>${b == null ? '-' : b}</td><td style="color:${a != null && b != null && a !== b ? '#b91c1c' : 'inherit'};font-weight:700">${a != null && b != null && a !== b ? signed(a - b) : ''}</td></tr>`;
   let h = `<div class="pn-head"><div class="pn-t">${esc(r.label)}</div><div class="pn-sub">${esc(C.name)} · <span class="ust ${r.st}">${UST[r.st]}</span></div></div>
@@ -3170,11 +3169,11 @@ function unitPanel(C, r){
       ${line('당해년도 현원', u ? nz(u.A) : null, p ? p.A : null)}${line('기준년도 정원', u ? nz(u.B) : null, p ? p.B : null)}${line('증감', u ? nz(u.D) : null, p ? p.D : null)}
       ${u ? `<tr><td>시수(학점)총계</td><td>${fmt(u.hours)}</td><td></td><td></td></tr><tr><td>계산교원수</td><td>${fmt(u.calc)}</td><td></td><td></td></tr>` : ''}</tbody></table>`;
   if (r.st !== 'ok'){
-    const msg = { diff:'값이 다릅니다. 고친 배당표(또는 예정표)를 다시 올리거나, 사유를 적고 확인하세요.', stale:'사유를 적은 뒤 값이 바뀌었습니다. 다시 확인해 주세요.', pass:'사유 작성과 확인이 끝나 통과된 교과입니다.',
+    const msg = { diff:'값이 다릅니다. 고친 배당표(또는 예정표)를 다시 올리거나, ‘확인함’을 체크하고 저장하세요(사유는 선택).', stale:'확인한 뒤 값이 바뀌었습니다. 다시 확인해 주세요.', pass:'확인이 끝나 통과된 교과입니다.',
       onlyU:'배당표에만 있는 교과입니다(예정표에 현원·정원 없음).', onlyP:'예정표에만 있는 교과입니다(배당표에 없음).' }[r.st];
     h += `<div class="pn-status ${r.st === 'pass' ? 'pass' : r.st === 'stale' ? 'stale' : 'diff'}">${msg}</div>
       <label class="pn-l" for="uReason">사유</label><textarea id="uReason" rows="3" placeholder="예: 11월 예정표 미반영, 학교 확인 완료">${esc(rv.reason || '')}</textarea>
-      <label class="pn-chk"><input type="checkbox" id="uCheck" ${rv.checked && r.st !== 'stale' ? 'checked' : ''}> 확인함 (사유 + 체크 = 통과)</label>
+      <label class="pn-chk"><input type="checkbox" id="uCheck" ${rv.checked && r.st !== 'stale' ? 'checked' : ''}> 확인함 (체크하고 저장하면 통과 · 사유는 선택)</label>
       <div class="row"><button class="btn primary" id="uSave">저장</button>${state.unitReviews[C.name + '|' + r.k] ? '<button class="btn danger" id="uDel">사유 삭제</button>' : ''}</div>`;
   }
   h += `<div class="pn-tip">고칠 내용이 있으면 <button class="btn" id="uToFix" ${C.ek ? '' : 'disabled'}>학교별 수정사항에 추가</button></div>`;
@@ -3258,7 +3257,6 @@ FULL.addEventListener('click', e => {
     const key = name + '|' + r.k;
     if (b.id === 'uDel'){ if (!confirm('이 교과의 사유를 삭제할까요?')) return; delete state.unitReviews[key]; }
     else if (b.id === 'uSave'){ const reason = $('#uReason').value.trim(), checked = $('#uCheck').checked;
-      if (checked && !reason){ alert('사유를 입력해야 통과 처리됩니다.'); return; }
       state.unitReviews[key] = { reason, checked, snap:r.snap, updatedAt:new Date().toISOString() }; }
     else { if (!C.ek) return;
       const u = r.u, p = r.p, part = (lb, a, c) => a == null || c == null ? '' : (a === c ? '' : `${lb} 배당표 ${a} / 예정표 ${c}`);
