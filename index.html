@@ -2912,14 +2912,21 @@ async function renderSlots(){
     <div class="acts"><span class="lg" style="margin-right:auto">작업 내용은 슬롯과 별개로 계속 자동 저장됩니다.</span><button class="btn" id="slClose">닫기</button></div></div>`;
 }
 async function slotSave(no){
-  const old = await slotGet(no);
-  const def = old ? old.name : `슬롯 ${no} · ${fmtTime(new Date().toISOString())}`;
-  const name = prompt(old ? `슬롯 ${no}을(를) 지금 작업으로 덮어씁니다. 이름:` : `슬롯 ${no}에 저장합니다. 이름:`, def);
-  if (name === null) return;
-  const data = JSON.stringify({ ...state, savedAt:new Date().toISOString() });
-  await slotPut({ no, name:name.trim() || def, savedAt:new Date().toISOString(), size:data.length, summary:stateSummary(state), data });
+  const old = await slotGet(no), now = new Date().toISOString();
+  const auto = `슬롯 ${no} · ${fmtTime(now)}`;   // 저장하는 순간의 시각으로 이름 자동 지정
+  let name = auto;
+  if (old){
+    // 덮어쓰기: 묻지 않고 이름을 지금 시각으로 바꿔 저장
+    if (!confirm(`슬롯 ${no} ‘${old.name}’을(를) 지금 작업으로 덮어쓸까요?\n이름은 ‘${auto}’(으)로 바뀝니다.`)) return;
+  } else {
+    const n = prompt(`슬롯 ${no}에 저장합니다. 이름:`, auto);
+    if (n === null) return;
+    name = n.trim() || auto;
+  }
+  const data = JSON.stringify({ ...state, savedAt:now });
+  await slotPut({ no, name, savedAt:now, size:data.length, summary:stateSummary(state), data });
   curSlot = no; try { localStorage.setItem(LS_KEY + '.curSlot', JSON.stringify(no)); } catch(e){}
-  toast(`<b>슬롯 ${no}에 저장했습니다.</b><br>${esc(name.trim() || def)}`);
+  toast(`<b>슬롯 ${no}에 저장했습니다.</b><br>${esc(name)}`);
 }
 async function slotLoad(no){
   const r = await slotGet(no); if (!r) return;
