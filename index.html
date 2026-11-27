@@ -423,6 +423,15 @@ table.fx td.act{width:96px;white-space:nowrap;padding-top:9px}
 .fx-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
 .fx-bar .grp{display:flex;gap:6px;align-items:center;padding-left:10px;margin-left:4px;border-left:1px solid var(--line)}
 .fx-bar select{padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:#fff}
+.fx-dates{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:0 0 12px;padding:8px 10px;background:var(--surface);border:1px solid var(--line);border-radius:10px}
+.dchip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:4px 11px;font-size:12.5px;color:var(--ink)}
+.dchip b{margin-left:3px;color:#4f46e5}
+.dchip:hover{background:#f3f4f6}
+.dchip.on{background:#111827;border-color:#111827;color:#fff} .dchip.on b{color:#c7d2fe}
+.fx-batch{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:0 0 10px;padding:8px 10px;border:1px dashed #c7d2fe;background:#f5f7ff;border-radius:10px;font-size:13px}
+.fx-batch select{padding:5px 8px;border:1px solid var(--line);border-radius:8px;background:#fff}
+table.fx td.dt{font-size:12px;color:var(--muted);padding-top:12px;white-space:nowrap}
+table.fx td.dt small{display:block;font-size:11px;color:#9ca3af}
 /* 출력·PDF 문서 */
 .fdoc{page:fixpage;background:#fff;color:#111;font-family:"Malgun Gothic","맑은 고딕","Noto Sans KR","Noto Sans CJK KR",sans-serif;font-size:12.5px;line-height:1.55}
 .fd-head{border-bottom:2px solid #111;padding-bottom:8px;margin-bottom:12px}
@@ -443,7 +452,18 @@ table.fd-tb tr{break-inside:avoid;page-break-inside:avoid}
 
 /* ---------- 인사배치 양식 내보내기 ---------- */
 #tplModal{position:fixed;inset:0;z-index:40;background:rgba(17,24,39,.45);display:grid;place-items:center;padding:16px}
-#tplModal .bm{width:min(980px,100%)}
+#tplModal .bm{width:min(1180px,100%)}
+.tp-prev{max-height:min(56vh,560px);overflow:auto;border:1px solid var(--line);border-radius:10px}
+table.tpv{width:100%;border-collapse:collapse;font-size:12.5px}
+table.tpv th{position:sticky;top:0;background:#f1f3f6;font-size:11.5px;padding:6px 6px;border-bottom:1px solid var(--line);z-index:1}
+table.tpv td{padding:5px 6px;border-bottom:1px solid var(--line2);text-align:center;font-variant-numeric:tabular-nums}
+table.tpv td.l{text-align:left}
+table.tpv td.res{font-weight:700;background:#f8fafc}
+table.tpv td.neg{color:var(--neg);font-weight:700;background:#fef2f2}
+table.tpv td.z{color:#c3c8cf}
+table.tpv tr.grp td{background:#111827;color:#fff;text-align:left;font-weight:700}
+table.tpv tr.sub td{background:#eef2f7;font-weight:700}
+.tp-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0 8px}
 .tp-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 @media (max-width:860px){.tp-grid{grid-template-columns:1fr}}
 .tp-box{border:1px solid var(--line);border-radius:10px;overflow:hidden}
@@ -1901,7 +1921,7 @@ function allExcel(){
   XLSX.utils.book_append_sheet(wb, clsSheet(cls), '학급수 비교');
   XLSX.utils.book_append_sheet(wb, toListSheet(toData('cap', 'all')), 'TO증감(정원)');
   XLSX.utils.book_append_sheet(wb, toListSheet(toData('cur', 'all')), 'TO증감(현원)');
-  XLSX.utils.book_append_sheet(wb, fixSheet(fixEntities('all')), '학교별 수정사항');
+  { const keep = ui.fixDate; ui.fixDate = 'all'; XLSX.utils.book_append_sheet(wb, fixSheet(fixEntities('all')), '학교별 수정사항'); ui.fixDate = keep; }   // 통합 엑셀은 날짜와 상관없이 전체
   XLSX.utils.book_append_sheet(wb, unitStatusSheet(), '배당표 대조 현황');
   XLSX.utils.book_append_sheet(wb, unitDetailSheet(Object.keys(state.units)), '배당표 대조 상세');
   const p = n => String(n).padStart(2,'0'), d = new Date();
@@ -2359,9 +2379,24 @@ FULL.addEventListener('input', e => {
 
 /* ===================== 학교별 수정사항 탭 ===================== */
 const PDF_LIB_URL = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
-Object.assign(ui, { fixSel:null, fixOnly:false, fixQ:'', fixScope:'all' });
+const ZIP_LIB_URL = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+Object.assign(ui, { fixSel:null, fixOnly:false, fixQ:'', fixScope:'all', fixDate:'all' });
 const fixRows = ek => state.fixes[ek] || [];
 const filledFix = ek => fixRows(ek).filter(r => String(r.item || '').trim() || String(r.text || '').trim());
+// 저장한 날짜(마지막으로 고친 날) — 내 컴퓨터 시간 기준 YYYY-MM-DD
+const p2 = n => String(n).padStart(2, '0');
+const dayOf = iso => { if (!iso) return ''; const d = new Date(iso); return `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}`; };
+const fixDay = r => dayOf(r.updatedAt || r.createdAt);
+const todayStr = () => dayOf(new Date().toISOString());
+const WEEK = '일월화수목금토';
+const dayLabel = d => { if (!d) return '날짜 없음'; const x = new Date(d + 'T00:00:00'); return `${d.slice(5).replace('-', '.')} (${WEEK[x.getDay()]})`; };
+const inDate = r => ui.fixDate === 'all' || fixDay(r) === ui.fixDate;
+const datedFix = ek => filledFix(ek).filter(inDate);
+function fixDates(){
+  const m = new Map();
+  Object.values(state.fixes).forEach(rows => rows.forEach(r => { if (String(r.item || '').trim() || String(r.text || '').trim()){ const d = fixDay(r); m.set(d, (m.get(d) || 0) + 1); } }));
+  return [...m.entries()].sort((a, b) => b[0].localeCompare(a[0]));
+}
 // 목록: 업로드된 학교·전체 + (이름이 바뀌어) 목록에 없는 학교의 수정사항
 function fixAllEnts(){
   const ents = allEntities().map(e => ({ ek:entKey(e.sel), name:e.name, level:e.level }));
@@ -2371,71 +2406,87 @@ function fixAllEnts(){
 }
 const FX_LEVEL = { T:'전체', M:'중학교', H:'고등학교', E:'기타', X:'목록에 없는 학교' };
 function fixEntities(scope){
-  return fixAllEnts().filter(e => filledFix(e.ek).length && (scope === 'all' || e.level === scope));
+  return fixAllEnts().filter(e => datedFix(e.ek).length && (scope === 'all' || e.level === scope));
 }
 function fixItemList(){
   const list = [], add = t => { t = String(t || '').trim(); if (t && !list.includes(t)) list.push(t); };
   (state.fixItems || []).forEach(add); Object.values(state.fixes).forEach(rows => rows.forEach(r => add(r.item)));
   return list;
 }
+const dateTag = () => ui.fixDate === 'all' ? '전체' : ui.fixDate.replace(/-/g, '');
 function renderFix(){
-  const ents = fixAllEnts(), sy = FULL.scrollTop;
+  const ents = fixAllEnts(), sy = FULL.scrollTop, dates = fixDates();
+  if (ui.fixDate !== 'all' && !dates.some(([d]) => d === ui.fixDate)) ui.fixDate = 'all';
   if (!ui.fixSel || !ents.some(e => e.ek === ui.fixSel)){
-    const withFix = ents.find(e => filledFix(e.ek).length);
+    const withFix = ents.find(e => datedFix(e.ek).length);
     ui.fixSel = withFix ? withFix.ek : (ents.find(e => e.level !== 'T') || ents[0] || {}).ek || null;
   }
   const q = ui.fixQ.trim();
   let side = '';
   for (const lv of ['T','M','H','E','X']){
-    const list = ents.filter(e => e.level === lv && (!ui.fixOnly || filledFix(e.ek).length) && (!q || e.name.includes(q)));
+    const list = ents.filter(e => e.level === lv && (!ui.fixOnly || datedFix(e.ek).length) && (!q || e.name.includes(q)));
     if (!list.length) continue;
-    side += `<div class="sb-sec"><span>${FX_LEVEL[lv]}</span><span>${list.length}</span></div>` + list.map(e => { const n = filledFix(e.ek).length;
+    side += `<div class="sb-sec"><span>${FX_LEVEL[lv]}</span><span>${list.length}</span></div>` + list.map(e => { const n = datedFix(e.ek).length;
       return `<button class="fx-item${e.ek === ui.fixSel ? ' active' : ''}" data-fxent="${esc(e.ek)}" title="${esc(e.name)}"><span class="nm">${esc(e.name)}</span>${n ? `<span class="fx-cnt">${n}</span>` : ''}</button>`; }).join('');
   }
   if (!side) side = `<div class="sb-empty">${ents.length ? '조건에 맞는 학교가 없습니다.' : '⚙ 설정에서 파일을 업로드하면 학교 목록이 나타납니다.'}</div>`;
   const cur = ents.find(e => e.ek === ui.fixSel);
-  const rows = cur ? fixRows(cur.ek) : [];
-  const total = fixEntities('all').length, totalRows = fixEntities('all').reduce((a, e) => a + filledFix(e.ek).length, 0);
+  const allRows = cur ? fixRows(cur.ek) : [];
+  const rows = allRows.filter(r => inDate(r) || !(String(r.item || '').trim() || String(r.text || '').trim()));   // 막 추가한 빈 줄은 항상 보이게
+  const fe = fixEntities(ui.fixScope), totalRows = fe.reduce((a, e) => a + datedFix(e.ek).length, 0);
+  const allCnt = dates.reduce((a, [, n]) => a + n, 0);
   const items = fixItemList();
+  const dateBar = `<div class="fx-dates"><span class="lg">저장한 날짜</span>
+    <button class="dchip${ui.fixDate === 'all' ? ' on' : ''}" data-fxdate="all">전체 <b>${allCnt}</b></button>
+    ${dates.map(([d, n]) => `<button class="dchip${ui.fixDate === d ? ' on' : ''}" data-fxdate="${d}">${dayLabel(d)}${d === todayStr() ? ' 오늘' : ''} <b>${n}</b></button>`).join('')}</div>`;
   let main = '';
   if (!cur) main = `<div class="fx-card"><div class="fx-empty">왼쪽에서 학교를 고르세요.</div></div>`;
   else {
-    main = `<div class="fx-head"><h2>${esc(cur.name)}</h2><span class="pill">${FX_LEVEL[cur.level]}</span><span class="pill" style="background:#e0e7ff;color:#3730a3">수정사항 ${filledFix(cur.ek).length}건</span></div>
+    const scopeName = { all:'전체', T:'전체 파일', M:'중학교', H:'고등학교' }[ui.fixScope];
+    main = `<div class="fx-head"><h2>${esc(cur.name)}</h2><span class="pill">${FX_LEVEL[cur.level]}</span><span class="pill" style="background:#e0e7ff;color:#3730a3">수정사항 ${datedFix(cur.ek).length}건${ui.fixDate === 'all' ? '' : ` · ${dayLabel(ui.fixDate)}`}</span></div>
       <div class="fx-bar">
         <button class="btn primary" id="fxAdd">＋ 수정사항 추가</button>
         <span style="flex:1"></span>
-        <span class="lg">이 학교</span><button class="btn" id="fxPrint1">인쇄</button><button class="btn" id="fxPdf1">PDF 다운로드</button>
-        <span class="grp"><span class="lg">여러 학교 (수정사항 ${total}곳 · ${totalRows}건)</span>
-          <select id="fxScope">${[['all','전체'],['T','전체 파일'],['M','중학교'],['H','고등학교']].map(([k, v]) => `<option value="${k}"${ui.fixScope === k ? ' selected' : ''}>${v}</option>`).join('')}</select>
-          <button class="btn" id="fxPrintAll">일괄 인쇄</button><button class="btn" id="fxPdfAll">일괄 PDF</button><button class="btn" id="fxXlsx">엑셀</button></span>
+        <span class="lg">이 학교</span><button class="btn" id="fxPrint1">인쇄</button><button class="btn" id="fxPdf1">PDF</button>
       </div>
+      <div class="fx-batch"><b>여러 학교 한 번에</b>
+        <select id="fxScope">${[['all','전체'],['T','전체 파일'],['M','중학교'],['H','고등학교']].map(([k, v]) => `<option value="${k}"${ui.fixScope === k ? ' selected' : ''}>${v}</option>`).join('')}</select>
+        <span class="lg">${scopeName} · ${ui.fixDate === 'all' ? '전체 수정사항' : `${dayLabel(ui.fixDate)} 수정사항`} → <b>${fe.length}곳 · ${totalRows}건</b></span>
+        <span style="flex:1"></span>
+        <button class="btn" id="fxPrintAll" ${fe.length ? '' : 'disabled'}>일괄 인쇄</button>
+        <button class="btn" id="fxPdfAll" ${fe.length ? '' : 'disabled'} title="모든 학교를 PDF 파일 하나에">PDF 한 파일</button>
+        <button class="btn primary" id="fxPdfZip" ${fe.length ? '' : 'disabled'} title="학교마다 PDF 파일을 따로 만들어 ZIP 하나로">학교별 PDF (ZIP)</button>
+        <button class="btn" id="fxPdfEach" ${fe.length ? '' : 'disabled'} title="학교마다 PDF 파일을 따로 다운로드">학교별 PDF (각각)</button>
+        <button class="btn" id="fxXlsx" ${fe.length ? '' : 'disabled'}>엑셀</button></div>
       <datalist id="fxItems">${items.map(t => `<option value="${esc(t)}">`).join('')}</datalist>
-      <div class="fx-card"><table class="fx"><thead><tr><th style="width:44px;text-align:center">번호</th><th style="width:24%">항목</th><th>수정 내용</th><th style="width:96px"></th></tr></thead><tbody>
+      <div class="fx-card"><table class="fx"><thead><tr><th style="width:44px;text-align:center">번호</th><th style="width:22%">항목</th><th>수정 내용</th><th style="width:96px">저장한 날</th><th style="width:96px"></th></tr></thead><tbody>
       ${rows.map((r, i) => `<tr data-fxrow="${r.id}"><td class="no">${i + 1}</td>
         <td><input data-fxitem="${r.id}" list="fxItems" value="${esc(r.item || '')}" class="${r.item ? '' : 'emp'}" placeholder="항목 (예: 국어 정원)" autocomplete="off"></td>
         <td><textarea data-fxtext="${r.id}" rows="1" placeholder="수정할 내용">${esc(r.text || '')}</textarea></td>
+        <td class="dt" data-fxdt="${r.id}">${dayLabel(fixDay(r))}<small>${fmtTime(r.updatedAt || r.createdAt).slice(11)}</small></td>
         <td class="act"><button class="icon-s" data-fxmove="${r.id}|-1" title="위로" ${i ? '' : 'disabled'}>▲</button> <button class="icon-s" data-fxmove="${r.id}|1" title="아래로" ${i < rows.length - 1 ? '' : 'disabled'}>▼</button> <button class="rdel" data-fxdel="${r.id}" title="삭제" style="border:none;background:none;color:#9ca3af;font-size:16px">×</button></td></tr>`).join('')
-        || `<tr><td colspan="4" class="fx-empty">아직 수정사항이 없습니다. <b>＋ 수정사항 추가</b>를 눌러 항목과 내용을 적으세요.</td></tr>`}
+        || `<tr><td colspan="5" class="fx-empty">${allRows.length ? '선택한 날짜에 저장한 수정사항이 없습니다.' : '아직 수정사항이 없습니다. <b>＋ 수정사항 추가</b>를 눌러 항목과 내용을 적으세요.'}</td></tr>`}
       </tbody></table></div>
-      <div class="foot">항목은 한 번 쓰면 다음부터 목록에서 고를 수 있습니다. 항목에서 Enter를 누르면 내용 칸으로 넘어갑니다. 자동 저장됩니다.</div>`;
+      <div class="foot">‘저장한 날’은 마지막으로 고친 날입니다. 항목은 한 번 쓰면 다음부터 목록에서 고를 수 있고, 항목에서 Enter를 누르면 내용 칸으로 넘어갑니다. 자동 저장됩니다.</div>`;
   }
   FULL.innerHTML = `<div class="fx-wrap"><aside class="fx-side">
       <input class="search" id="fxQ" placeholder="학교 검색" value="${esc(ui.fixQ)}">
       <label class="chk"><input type="checkbox" id="fxOnly" ${ui.fixOnly ? 'checked' : ''}> 수정사항 있는 곳만</label>
       <div class="fx-list">${side}</div></aside>
-    <section class="fx-main"><h2 class="tt">학교별 수정사항</h2>${main}</section></div>`;
+    <section class="fx-main"><h2 class="tt">학교별 수정사항</h2>${dateBar}${main}</section></div>`;
   FULL.querySelectorAll('table.fx textarea').forEach(autoGrow);
   FULL.scrollTop = sy;
 }
 function fixDocHtml(e){
-  const rows = filledFix(e.ek), d = new Date(), p = n => String(n).padStart(2, '0');
+  const rows = datedFix(e.ek), d = new Date();
   const groups = []; rows.forEach(r => { const k = String(r.item || '').trim() || '(항목 없음)'; let g = groups.find(x => x.k === k); if (!g){ g = { k, list:[] }; groups.push(g); } g.list.push(r); });
   let no = 0, body = '';
   groups.forEach(g => g.list.forEach((r, i) => { no++;
-    body += `<tr><td class="c">${no}</td>${i === 0 ? `<td class="it" rowspan="${g.list.length}">${esc(g.k)}</td>` : ''}<td class="tx">${esc(r.text || '')}</td></tr>`; }));
+    body += `<tr><td class="c">${no}</td>${i === 0 ? `<td class="it" rowspan="${g.list.length}">${esc(g.k)}</td>` : ''}<td class="tx">${esc(r.text || '')}</td><td class="c" style="font-size:11px">${fixDay(r).slice(5).replace('-', '.')}</td></tr>`; }));
+  const range = ui.fixDate === 'all' ? '전체 수정사항' : `${ui.fixDate.replace(/-/g, '. ')}. 저장분`;
   return `<div class="fdoc"><div class="fd-head"><div class="fd-k">교원조직 예정표 수정사항</div><div class="fd-t">${esc(e.name)}</div>
-      <div class="fd-m">${FX_LEVEL[e.level] || ''} · 총 ${rows.length}건 · 출력일 ${d.getFullYear()}. ${p(d.getMonth() + 1)}. ${p(d.getDate())}.</div></div>
-    ${rows.length ? `<table class="fd-tb"><colgroup><col style="width:13mm"><col style="width:42mm"><col></colgroup><thead><tr><th>번호</th><th>항목</th><th>수정 내용</th></tr></thead><tbody>${body}</tbody></table>` : '<div class="fd-none">수정사항 없음</div>'}
+      <div class="fd-m">${FX_LEVEL[e.level] || ''} · ${range} · 총 ${rows.length}건 · 출력일 ${d.getFullYear()}. ${p2(d.getMonth() + 1)}. ${p2(d.getDate())}.</div></div>
+    ${rows.length ? `<table class="fd-tb"><colgroup><col style="width:12mm"><col style="width:40mm"><col><col style="width:16mm"></colgroup><thead><tr><th>번호</th><th>항목</th><th>수정 내용</th><th>저장일</th></tr></thead><tbody>${body}</tbody></table>` : '<div class="fd-none">수정사항 없음</div>'}
     <div class="fd-foot">교원조직 예정표 비교·검증</div></div>`;
 }
 function fixPrint(ents){
@@ -2446,37 +2497,61 @@ function fixPrint(ents){
   document.body.appendChild(box); document.body.classList.add('batch-print');
   setTimeout(() => { window.print(); setTimeout(() => { box.remove(); document.body.classList.remove('batch-print'); }, 300); }, 50);
 }
-let pdfLibPromise = null;
-function loadPdfLib(){
-  if (window.html2pdf) return Promise.resolve();
-  if (!pdfLibPromise) pdfLibPromise = new Promise((res, rej) => {
-    const sc = document.createElement('script'); sc.src = PDF_LIB_URL; sc.onload = res;
-    sc.onerror = () => { pdfLibPromise = null; rej(new Error('PDF 도구를 불러오지 못했습니다 (인터넷 연결 확인)')); };
+const libPromises = {};
+function loadLib(url, globalName){
+  if (window[globalName]) return Promise.resolve();
+  if (!libPromises[url]) libPromises[url] = new Promise((res, rej) => {
+    const sc = document.createElement('script'); sc.src = url; sc.onload = res;
+    sc.onerror = () => { delete libPromises[url]; rej(new Error('PDF·압축 도구를 불러오지 못했습니다 (인터넷 연결 확인)')); };
     document.head.appendChild(sc);
   });
-  return pdfLibPromise;
+  return libPromises[url];
+}
+const loadPdfLib = () => loadLib(PDF_LIB_URL, 'html2pdf');
+const PDF_OPT = () => ({ margin:[14, 14, 14, 14], image:{ type:'jpeg', quality:0.96 }, html2canvas:{ scale:2, backgroundColor:'#ffffff', scrollX:0, scrollY:0 },
+  jsPDF:{ unit:'mm', format:'a4', orientation:'portrait' }, pagebreak:{ mode:['css','legacy'], avoid:['tr', '.fd-head'] } });
+function fixPdfBox(ents){
+  const box = document.createElement('div'); box.style.cssText = 'width:182mm;background:#fff';
+  box.innerHTML = ents.map((e, i) => fixDocHtml(e) + (i < ents.length - 1 ? '<div class="html2pdf__page-break"></div>' : '')).join('');
+  return box;
 }
 async function fixPdf(ents, filename){
   if (!ents.length){ alert('PDF로 만들 수정사항이 없습니다.'); return; }
   toast(`<b>PDF 만드는 중…</b> (${ents.length}곳)`, { sticky:true });
-  let box = null;
   try {
     await loadPdfLib();
-    box = document.createElement('div');
-    box.style.cssText = 'width:182mm;background:#fff';
-    box.innerHTML = ents.map((e, i) => fixDocHtml(e) + (i < ents.length - 1 ? '<div class="html2pdf__page-break"></div>' : '')).join('');
-    await window.html2pdf().set({ margin:[14, 14, 14, 14], filename:safeName(filename), image:{ type:'jpeg', quality:0.96 },
-      html2canvas:{ scale:2, backgroundColor:'#ffffff', scrollX:0, scrollY:0 },
-      jsPDF:{ unit:'mm', format:'a4', orientation:'portrait' }, pagebreak:{ mode:['css','legacy'], avoid:['tr', '.fd-head'] } }).from(box).save();
+    await window.html2pdf().set({ ...PDF_OPT(), filename:safeName(filename) }).from(fixPdfBox(ents)).save();
     toast(`<b>PDF 저장 완료</b><br>${esc(safeName(filename))}`);
   } catch(err){ toast(`<b>PDF를 만들지 못했습니다.</b><br>${esc(err.message || err)}<br>대신 ‘인쇄’에서 ‘PDF로 저장’을 고르셔도 됩니다.`, { err:true, sticky:true }); }
-  finally { box = null; }
+}
+// 학교마다 PDF를 따로 만들어 ZIP 하나로(또는 각각) 내려받기
+async function fixPdfEach(ents, asZip){
+  if (!ents.length){ alert('PDF로 만들 수정사항이 없습니다.'); return; }
+  const tag = `${{ all:'전체', T:'전체파일', M:'중학교', H:'고등학교' }[ui.fixScope]}_${dateTag()}`;
+  try {
+    await loadPdfLib(); if (asZip) await loadLib(ZIP_LIB_URL, 'JSZip');
+    const zip = asZip ? new window.JSZip() : null, used = new Set();
+    for (let i = 0; i < ents.length; i++){
+      const e = ents[i];
+      toast(`<b>학교별 PDF 만드는 중… ${i + 1} / ${ents.length}</b><br>${esc(e.name)}`, { sticky:true });
+      const blob = await window.html2pdf().set(PDF_OPT()).from(fixPdfBox([e])).outputPdf('blob');
+      let fn = safeName(`수정사항_${e.name}_${dateTag()}.pdf`); for (let k = 2; used.has(fn); k++) fn = safeName(`수정사항_${e.name}(${k})_${dateTag()}.pdf`); used.add(fn);
+      if (zip) zip.file(fn, blob);
+      else { downloadBlob(blob, fn); await new Promise(r => setTimeout(r, 450)); }
+    }
+    if (zip){
+      toast('<b>ZIP 파일로 묶는 중…</b>', { sticky:true });
+      const zb = await zip.generateAsync({ type:'blob' });
+      downloadBlob(zb, safeName(`수정사항_학교별PDF_${tag}.zip`));
+      toast(`<b>학교별 PDF ${ents.length}개를 ZIP으로 저장했습니다.</b><br>${esc(safeName(`수정사항_학교별PDF_${tag}.zip`))}`);
+    } else toast(`<b>학교별 PDF ${ents.length}개를 내려받았습니다.</b><br>브라우저가 ‘여러 파일 다운로드’를 물으면 허용을 눌러 주세요.`, { sticky:true });
+  } catch(err){ toast(`<b>PDF를 만들지 못했습니다.</b><br>${esc(err.message || err)}`, { err:true, sticky:true }); }
 }
 function fixSheet(ents){
-  const aoa = [['학교급','학교/구분','번호','항목','수정 내용','작성·수정일시']];
-  ents.forEach(e => filledFix(e.ek).forEach((r, i) => aoa.push([FX_LEVEL[e.level], e.name, i + 1, r.item || '', r.text || '', fmtTime(r.updatedAt || r.createdAt)])));
+  const aoa = [['학교급','학교/구분','번호','항목','수정 내용','저장한 날','저장 시각']];
+  ents.forEach(e => datedFix(e.ek).forEach((r, i) => aoa.push([FX_LEVEL[e.level], e.name, i + 1, r.item || '', r.text || '', fixDay(r), fmtTime(r.updatedAt || r.createdAt)])));
   if (aoa.length === 1) aoa.push(['', '(수정사항 없음)']);
-  const ws = XLSX.utils.aoa_to_sheet(aoa); ws['!cols'] = [{wch:10},{wch:18},{wch:6},{wch:20},{wch:70},{wch:16}];
+  const ws = XLSX.utils.aoa_to_sheet(aoa); ws['!cols'] = [{wch:10},{wch:18},{wch:6},{wch:20},{wch:70},{wch:12},{wch:16}];
   return ws;
 }
 function fixFind(id){ const rows = fixRows(ui.fixSel); return { rows, r:rows.find(x => x.id === id) }; }
@@ -2487,8 +2562,10 @@ FULL.addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
   const cur = fixAllEnts().find(x => x.ek === ui.fixSel);
   if (b.dataset.fxent){ ui.fixSel = b.dataset.fxent; renderFix(); return; }
+  if (b.dataset.fxdate){ ui.fixDate = b.dataset.fxdate; renderFix(); return; }
   if (b.id === 'fxAdd' && cur){
-    const r = { id:uid(), item:'', text:'', createdAt:new Date().toISOString() };
+    const now = new Date().toISOString(), r = { id:uid(), item:'', text:'', createdAt:now };
+    if (ui.fixDate !== 'all' && ui.fixDate !== todayStr()) ui.fixDate = 'all';   // 새 줄은 오늘 날짜
     (state.fixes[cur.ek] = state.fixes[cur.ek] || []).push(r); persist(); renderFix();
     const inp = FULL.querySelector(`input[data-fxitem="${r.id}"]`); if (inp){ inp.scrollIntoView({ block:'center' }); inp.focus(); }
     return;
@@ -2501,17 +2578,20 @@ FULL.addEventListener('click', e => {
     persist(); renderFix(); return;
   }
   if (b.dataset.fxmove){
-    const [id, dir] = b.dataset.fxmove.split('|'), rows = fixRows(ui.fixSel), i = rows.findIndex(x => x.id === id), j = i + Number(dir);
-    if (i < 0 || j < 0 || j >= rows.length) return;
-    [rows[i], rows[j]] = [rows[j], rows[i]]; persist(); renderFix(); return;
+    const [id, dir] = b.dataset.fxmove.split('|'), all = fixRows(ui.fixSel);
+    const vis = all.filter(r => inDate(r) || !(String(r.item || '').trim() || String(r.text || '').trim()));
+    const i = vis.findIndex(x => x.id === id), j = i + Number(dir); if (i < 0 || j < 0 || j >= vis.length) return;
+    const ai = all.indexOf(vis[i]), aj = all.indexOf(vis[j]); [all[ai], all[aj]] = [all[aj], all[ai]]; persist(); renderFix(); return;
   }
-  const stamp = () => { const d = new Date(), p = n => String(n).padStart(2, '0'); return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}`; };
+  const stamp = () => { const d = new Date(); return `${d.getFullYear()}${p2(d.getMonth() + 1)}${p2(d.getDate())}`; };
   const scopeName = { all:'전체', T:'전체파일', M:'중학교', H:'고등학교' }[ui.fixScope];
   if (b.id === 'fxPrint1' && cur) return fixPrint([cur]);
-  if (b.id === 'fxPdf1' && cur) return fixPdf([cur], `수정사항_${cur.name}_${stamp()}.pdf`);
+  if (b.id === 'fxPdf1' && cur) return fixPdf([cur], `수정사항_${cur.name}_${dateTag()}.pdf`);
   if (b.id === 'fxPrintAll') return fixPrint(fixEntities(ui.fixScope));
-  if (b.id === 'fxPdfAll') return fixPdf(fixEntities(ui.fixScope), `수정사항_${scopeName}_${stamp()}.pdf`);
-  if (b.id === 'fxXlsx'){ const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, fixSheet(fixEntities(ui.fixScope)), '학교별 수정사항'); saveBook(wb, `학교별_수정사항_${scopeName}_${stamp()}.xlsx`); }
+  if (b.id === 'fxPdfAll') return fixPdf(fixEntities(ui.fixScope), `수정사항_${scopeName}_${dateTag()}_${stamp()}.pdf`);
+  if (b.id === 'fxPdfZip') return fixPdfEach(fixEntities(ui.fixScope), true);
+  if (b.id === 'fxPdfEach') return fixPdfEach(fixEntities(ui.fixScope), false);
+  if (b.id === 'fxXlsx'){ const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, fixSheet(fixEntities(ui.fixScope)), '학교별 수정사항'); saveBook(wb, `학교별_수정사항_${scopeName}_${dateTag()}_${stamp()}.xlsx`); }
 });
 FULL.addEventListener('input', e => {
   if (ui.tab !== 'fix') return;
@@ -2523,18 +2603,22 @@ FULL.addEventListener('input', e => {
   if (t.dataset.fxitem){ r.item = t.value; t.classList.toggle('emp', !t.value); }
   else { r.text = t.value; autoGrow(t); }
   r.updatedAt = new Date().toISOString(); fixSaveSoon();
+  const dt = FULL.querySelector(`[data-fxdt="${id}"]`); if (dt) dt.innerHTML = `${dayLabel(fixDay(r))}<small>${fmtTime(r.updatedAt).slice(11)}</small>`;
 });
 FULL.addEventListener('change', e => {
   if (ui.tab !== 'fix') return;
   const t = e.target;
   if (t.id === 'fxOnly'){ ui.fixOnly = t.checked; renderFix(); return; }
-  if (t.id === 'fxScope'){ ui.fixScope = t.value; return; }
-  if (t.dataset.fxitem){   // 항목을 다 쓰면 목록에 추가하고 건수 갱신
-    const v = t.value.trim(); if (v) state.fixItems = [v, ...(state.fixItems || []).filter(x => x !== v)].slice(0, 80);
+  if (t.id === 'fxScope'){ ui.fixScope = t.value; renderFix(); return; }
+  if (t.dataset.fxitem || t.dataset.fxtext){   // 다 쓰면 목록·날짜 건수 갱신
+    if (t.dataset.fxitem){ const v = t.value.trim(); if (v) state.fixItems = [v, ...(state.fixItems || []).filter(x => x !== v)].slice(0, 80); }
     persist();
     const dl = $('#fxItems'); if (dl) dl.innerHTML = fixItemList().map(x => `<option value="${esc(x)}">`).join('');
-    const cnt = FULL.querySelector(`.fx-item.active .fx-cnt`), n = filledFix(ui.fixSel).length;
+    const cnt = FULL.querySelector(`.fx-item.active .fx-cnt`), n = datedFix(ui.fixSel).length;
     if (cnt) cnt.textContent = n;
+    const bar = FULL.querySelector('.fx-dates'); if (bar){ const all = fixDates();
+      bar.innerHTML = `<span class="lg">저장한 날짜</span><button class="dchip${ui.fixDate === 'all' ? ' on' : ''}" data-fxdate="all">전체 <b>${all.reduce((a, [, k]) => a + k, 0)}</b></button>` +
+        all.map(([d, k]) => `<button class="dchip${ui.fixDate === d ? ' on' : ''}" data-fxdate="${d}">${dayLabel(d)}${d === todayStr() ? ' 오늘' : ''} <b>${k}</b></button>`).join(''); }
   }
 });
 FULL.addEventListener('keydown', e => {
@@ -2548,7 +2632,7 @@ const TPL_DEFAULT_B64 = 'UEsDBBQAAAAIAAAAAAAFljNIdAEAAFwEAAAaAAAAeGwvX3JlbHMvd29
 const TPL_SHEETS = { diff:['전년도 증감 현황', 0], temp:['전년도 기간제 현황', 1], cls:['학급수', 2] };
 const TPL_TOTAL_ROW = /^(중계|고계|증감계|청계|총계|합계|기간제계)$/;
 const TPL_SUBJ_ALIAS = { 일본어:'일어', 중국어:'중어', 정보컴퓨터:'정컴', 전기전자통신:'전기자통', 상담:'전문상담', 도덕:'도덕윤리', 윤리:'도덕윤리' };
-Object.assign(ui, { tpl:{ group:'fin', mode:'short' } });
+Object.assign(ui, { tpl:{ group:'fin', mode:'short', view:'set', q:'', onlyNeg:false } });
 const tNorm = s => String(s ?? '').replace(/[\s・·.,/()\-]/g, '');
 function schoolShort(n){ return tNorm(n).replace(/고등학교$/, '고').replace(/중학교$/, '중').replace(/학교$/, ''); }
 function b64ToBytes(b){ const bin = atob(b), u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return u; }
@@ -2586,15 +2670,17 @@ function tplValues(rec, mode){
   const fm = recMaps(rec), row = name => { const l = fm.order.find(x => nospace(x) === name); return l ? fm.rows.get(l) : null; };
   const num = v => typeof nz(v) === 'number' ? nz(v) : 0;
   const S = row('과부족인원'), A = row('기준년도정원'), B = row('당해년도정원');
-  const TL = fm.order.find(x => /현원제외요인/.test(nospace(x))), T = TL ? fm.rows.get(TL) : null;   // 기간제 = 현원제외요인-HOLD계
-  const diff = new Map(), temp = new Map();
+  const E = row('정원외기간제'), M = row('미발령결원대체'), H = row('HOLD');   // 기간제 = 정원외기간제 + 미발령결원대체 − HOLD
+  const diff = new Map(), temp = new Map(), parts = new Map(), diffParts = new Map();
   fm.subs.forEach(s => {
     const d = mode === 'short' ? (S ? -num(S.get(s)) : 0) : num(A && A.get(s)) - num(B && B.get(s));
-    const t = num(T && T.get(s));
-    if (d) diff.set(s, d); if (t) temp.set(s, t);
+    const e = num(E && E.get(s)), m = num(M && M.get(s)), h = num(H && H.get(s)), t = e + m - h;
+    if (d){ diff.set(s, d); diffParts.set(s, { S:num(S && S.get(s)), A:num(A && A.get(s)), B:num(B && B.get(s)) }); }
+    if (t) temp.set(s, t);
+    if (e || m || h) parts.set(s, { e, m, h, t });
   });
   const cv = classVals(rec);
-  return { diff, temp, base: cv && typeof cv.base === 'number' ? cv.base : null, cur: cv && typeof cv.cur === 'number' ? cv.cur : null };
+  return { diff, temp, parts, diffParts, base: cv && typeof cv.base === 'number' ? cv.base : null, cur: cv && typeof cv.cur === 'number' ? cv.cur : null };
 }
 function tplPlan(){
   const wb = tplBook(), wsD = tplSheet(wb, 'diff'), wsT = tplSheet(wb, 'temp'), wsC = tplSheet(wb, 'cls');
@@ -2627,7 +2713,9 @@ function renderTpl(){
     <div class="opts" style="grid-template-columns:repeat(4,1fr)">
       ${opt('tpg','fin',G.group,'최종 교원조직 예정표','')}${opt('tpg','sep',G.group,'9월 교원조직 예정표','')}
       ${opt('tpm','short',G.mode,'증감 = 과부족 부호 반대','기준년도 정원 − 당해년도 현원')}${opt('tpm','cap',G.mode,'증감 = 정원끼리','기준년도 정원 − 당해년도 정원')}</div>
-    <div class="tp-sum"><span>기간제 = <b>현원제외요인-HOLD계</b></span><span>학급수 = <b>기준년도 학급수</b> (학급수(기준년도) 열)</span></div>
+    <div class="tp-sum"><span>기간제 = <b>정원외기간제 + 미발령결원대체 − HOLD</b></span><span>학급수 = <b>기준년도 학급수</b> (학급수(기준년도) 열)</span></div>
+    <div class="seg" style="margin:4px 0 6px">${[['set','연결·설정'],['temp','기간제 확인'],['diff','증감 확인'],['cls','학급수 확인']].map(([k, v]) => `<button data-tpv="${k}" class="${G.view === k ? 'on' : ''}">${v}</button>`).join('')}</div>
+    ${G.view !== 'set' ? tplPreview(P, G.view) : `
     <div class="tp-sum"><span>양식 학교 <b>${P.matches.length}</b>곳 중 연결 <b>${nLinked}</b>곳</span>${nGuess ? `<span class="tag guess">추정 ${nGuess}곳 확인 필요</span>` : ''}
       ${P.unplaced.length ? `<span class="tag warn">양식에 없는 학교 ${P.unplaced.length}곳: ${esc(P.unplaced.map(e => e.name).join(', '))}</span>` : ''}
       ${missSub.length ? `<span class="tag warn">양식에 없는 교과 ${missSub.length}개 (아래에서 지정)</span>` : '<span class="tag auto">교과 모두 연결됨</span>'}</div>
@@ -2639,10 +2727,56 @@ function renderTpl(){
       <div class="tp-box"><h4>교과 연결 <span class="lg">값이 있는 교과만 · 양식 열 이름</span></h4><div class="tp-scroll"><table class="tp"><thead><tr><th style="width:38%">업로드 교과</th><th>양식 열</th><th style="width:70px"></th></tr></thead><tbody>
         ${P.subjects.sort((a, b) => !!a.target - !!b.target).map(x => `<tr><td>${esc(x.s)}</td><td><select data-tpj="${esc(x.s)}"><option value="">(반영 안 함)</option>${P.L.cols.map(c => `<option value="${esc(c.name)}"${x.target === c.name ? ' selected' : ''}>${esc(c.name)}</option>`).join('')}</select></td>
           <td>${x.target ? `<span class="tag ${x.manual ? 'man' : 'auto'}">${x.manual ? '직접' : '자동'}</span>` : '<span class="tag warn">빠짐</span>'}</td></tr>`).join('') || '<tr><td colspan="3" style="color:var(--muted);padding:14px">값이 있는 교과가 없습니다.</td></tr>'}
-      </tbody></table></div></div></div>
+      </tbody></table></div></div></div>`}
     <div class="acts"><button class="btn" id="tpUpload">다른 양식 올리기</button>${state.tplCustom ? '<button class="btn" id="tpReset">기본 양식으로</button>' : ''}<button class="btn" id="tpClear" title="직접 지정한 학교·교과 연결을 지우고 자동 연결로">연결 초기화</button>
       <span style="flex:1"></span><button class="btn" id="tpClose">닫기</button><button class="btn primary" id="tpGo" ${nLinked ? '' : 'disabled'}>엑셀 다운로드</button></div></div>`;
 }
+// 다운로드 전에 양식에 들어갈 값을 학교·교과별로 확인
+function tplPreview(P, view){
+  const q = ui.tpl.q.trim(), linked = P.matches.filter(m => m.vals && (!q || m.t.name.includes(q) || m.e.name.includes(q)));
+  const tgt = s => tplSubjTarget(s, P.L.cols);
+  const tools = (extra) => `<div class="tp-tools"><input class="search2" id="tpQ" placeholder="학교 검색" value="${esc(ui.tpl.q)}">${extra || ''}<span style="flex:1"></span><button class="btn" id="tpPrevXlsx">이 확인표 엑셀</button></div>`;
+  if (!linked.length) return tools() + `<div class="fx-empty">연결된 학교(자료 있음)가 없습니다. ‘연결·설정’에서 학교를 연결하세요.</div>`;
+  if (view === 'temp'){
+    let rows = '', tot = { e:0, m:0, h:0, t:0 }, nNeg = 0;
+    linked.forEach(m => {
+      let list = [...m.vals.parts.entries()].map(([s, v]) => ({ s, ...v, col:tgt(s) }));
+      if (ui.tpl.onlyNeg) list = list.filter(x => x.t < 0);
+      if (!list.length) return;
+      const sum = list.reduce((a, x) => ({ e:a.e + x.e, m:a.m + x.m, h:a.h + x.h, t:a.t + x.t }), { e:0, m:0, h:0, t:0 });
+      rows += `<tr class="grp"><td colspan="7">${esc(m.t.name)} <span style="font-weight:400;opacity:.8">← ${esc(m.e.name)}</span></td></tr>` + list.map(x => { if (x.t < 0) nNeg++;
+        return `<tr><td class="l">${esc(x.s)}</td><td>${x.col ? esc(x.col) : '<span class="tag warn">양식에 없음</span>'}</td><td class="${x.e ? '' : 'z'}">${x.e}</td><td class="${x.m ? '' : 'z'}">${x.m}</td><td class="${x.h ? '' : 'z'}">${x.h}</td><td class="res${x.t < 0 ? ' neg' : x.t ? '' : ' z'}">${x.t}</td><td class="l" style="font-size:11.5px;color:var(--muted)">${x.t < 0 ? 'HOLD가 더 커서 음수' : !x.t ? '0 → 빈칸' : ''}</td></tr>`; }).join('')
+        + `<tr class="sub"><td class="l">소계</td><td></td><td>${sum.e}</td><td>${sum.m}</td><td>${sum.h}</td><td>${sum.t}</td><td></td></tr>`;
+      tot = { e:tot.e + sum.e, m:tot.m + sum.m, h:tot.h + sum.h, t:tot.t + sum.t };
+    });
+    return tools(`<label class="chk"><input type="checkbox" id="tpNeg" ${ui.tpl.onlyNeg ? 'checked' : ''}> 음수(HOLD > 기간제)만</label>`)
+      + `<div class="tp-sum"><span>합계: 정원외기간제 <b>${tot.e}</b> + 미발령결원대체 <b>${tot.m}</b> − HOLD <b>${tot.h}</b> = 기간제 <b>${tot.t}</b></span>${nNeg ? `<span class="tag warn">음수 ${nNeg}칸 확인 필요</span>` : ''}</div>
+      <div class="tp-prev"><table class="tpv"><thead><tr><th style="width:16%">교과(예정표)</th><th style="width:14%">양식 열</th><th>정원외기간제</th><th>미발령결원대체</th><th>HOLD</th><th>기간제 (양식 값)</th><th style="width:18%">비고</th></tr></thead><tbody>${rows || '<tr><td colspan="7" style="padding:16px;color:var(--muted)">해당 없음</td></tr>'}</tbody></table></div>`;
+  }
+  if (view === 'diff'){
+    const short = ui.tpl.mode === 'short';
+    let rows = '';
+    linked.forEach(m => { const list = [...m.vals.diff.entries()]; if (!list.length) return;
+      rows += `<tr class="grp"><td colspan="6">${esc(m.t.name)} <span style="font-weight:400;opacity:.8">← ${esc(m.e.name)}</span></td></tr>` + list.map(([s, d]) => { const pt = m.vals.diffParts.get(s) || {};
+        return `<tr><td class="l">${esc(s)}</td><td>${tgt(s) ? esc(tgt(s)) : '<span class="tag warn">양식에 없음</span>'}</td>${short ? `<td>${pt.S}</td><td></td>` : `<td>${pt.A}</td><td>${pt.B}</td>`}<td class="res${d < 0 ? ' neg' : ''}">${signed(d)}</td><td></td></tr>`; }).join('')
+        + `<tr class="sub"><td class="l">소계</td><td></td><td></td><td></td><td>${signed(list.reduce((a, [, d]) => a + d, 0) || 0)}</td><td></td></tr>`; });
+    return tools() + `<div class="tp-sum"><span>증감 = <b>${short ? '과부족 인원 부호 반대 (기준정원 − 당해현원)' : '기준년도 정원 − 당해년도 정원'}</b></span></div>
+      <div class="tp-prev"><table class="tpv"><thead><tr><th style="width:18%">교과(예정표)</th><th style="width:14%">양식 열</th>${short ? '<th>과부족 인원</th><th></th>' : '<th>기준년도 정원</th><th>당해년도 정원</th>'}<th>증감 (양식 값)</th><th style="width:14%"></th></tr></thead><tbody>${rows || '<tr><td colspan="6" style="padding:16px;color:var(--muted)">증감이 있는 교과가 없습니다.</td></tr>'}</tbody></table></div>`;
+  }
+  const rows = linked.map(m => `<tr><td class="l">${esc(m.t.name)}</td><td class="l">${esc(m.e.name)}</td><td>${m.vals.cur ?? '-'}</td><td class="res">${m.vals.base ?? '-'}</td><td class="${m.vals.cur != null && m.vals.base != null && m.vals.cur !== m.vals.base ? 'neg' : ''}">${m.vals.cur != null && m.vals.base != null ? signed(m.vals.base - m.vals.cur) || '0' : ''}</td></tr>`).join('');
+  return tools() + `<div class="tp-prev"><table class="tpv"><thead><tr><th>양식 학교</th><th>업로드 학교</th><th>당해년도 학급수 (참고)</th><th>기준년도 학급수 (양식 값)</th><th>차 (기준−당해)</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+function tplPreviewSheet(P, view){
+  const aoa = [], tgt = s => tplSubjTarget(s, P.L.cols) || '(양식에 없음)';
+  const linked = P.matches.filter(m => m.vals);
+  if (view === 'temp'){ aoa.push(['양식 학교','업로드 학교','교과','양식 열','정원외기간제','미발령결원대체','HOLD','기간제(양식 값)']);
+    linked.forEach(m => m.vals.parts.forEach((v, s) => aoa.push([m.t.name, m.e.name, s, tgt(s), v.e, v.m, v.h, v.t]))); }
+  else if (view === 'diff'){ aoa.push(['양식 학교','업로드 학교','교과','양식 열','과부족 인원','기준년도 정원','당해년도 정원','증감(양식 값)']);
+    linked.forEach(m => m.vals.diff.forEach((d, s) => { const pt = m.vals.diffParts.get(s) || {}; aoa.push([m.t.name, m.e.name, s, tgt(s), pt.S, pt.A, pt.B, d]); })); }
+  else { aoa.push(['양식 학교','업로드 학교','당해년도 학급수','기준년도 학급수(양식 값)']); linked.forEach(m => aoa.push([m.t.name, m.e.name, m.vals.cur ?? '', m.vals.base ?? ''])); }
+  const ws = XLSX.utils.aoa_to_sheet(aoa); ws['!cols'] = [{wch:14},{wch:20},{wch:14},{wch:12},{wch:12},{wch:14},{wch:12},{wch:14}]; return ws;
+}
+
 // 간단한 수식 계산(SUM 범위, 셀 더하기·빼기) → 수식은 두고 미리 계산된 값만 채움
 function tplRecalc(ws){
   const val = a => { const c = ws[a]; return c && typeof c.v === 'number' ? c.v : 0; };
@@ -2692,6 +2826,9 @@ $('#tplModal').addEventListener('click', e => {
   if (id === 'tplModal' || id === 'tpClose'){ $('#tplModal').hidden = true; return; }
   if (id === 'tpGo'){ try { tplExport(); } catch(err){ toast(`<b>양식을 만들지 못했습니다.</b><br>${esc(err.message)}`, { err:true, sticky:true }); } return; }
   if (id === 'tpUpload') return $('#tplInput').click();
+  const v = e.target.closest('[data-tpv]'); if (v){ ui.tpl.view = v.dataset.tpv; renderTpl(); return; }
+  if (id === 'tpPrevXlsx'){ const P = tplPlan(), wb = XLSX.utils.book_new(), nm = { temp:'기간제 확인', diff:'증감 확인', cls:'학급수 확인' }[ui.tpl.view];
+    XLSX.utils.book_append_sheet(wb, tplPreviewSheet(P, ui.tpl.view), nm); saveBook(wb, `인사배치_${nm.replace(' ', '')}_${GROUPS[ui.tpl.group].label}.xlsx`); return; }
   if (id === 'tpReset'){ state.tplCustom = null; persist(); renderTpl(); return; }
   if (id === 'tpClear'){ if (!confirm('직접 지정한 학교·교과 연결을 모두 지우고 자동 연결로 되돌릴까요?')) return; state.tplSchoolMap = {}; state.tplSubjMap = {}; persist(); renderTpl(); }
 });
@@ -2699,12 +2836,18 @@ $('#tplModal').addEventListener('change', e => {
   const t = e.target;
   if (t.name === 'tpg') ui.tpl.group = t.value;
   else if (t.name === 'tpm') ui.tpl.mode = t.value;
+  else if (t.id === 'tpNeg') ui.tpl.onlyNeg = t.checked;
   else if (t.dataset.tps != null) state.tplSchoolMap[t.dataset.tps] = t.value;
   else if (t.dataset.tpj != null) state.tplSubjMap[t.dataset.tpj] = t.value;
   else return;
   if (t.dataset.tps != null || t.dataset.tpj != null) persist();
   renderTpl();
 });
+$('#tplModal').addEventListener('input', e => {
+  if (e.target.id !== 'tpQ') return; const pos = e.target.selectionStart; ui.tpl.q = e.target.value;
+  clearTimeout(tplQTimer); tplQTimer = setTimeout(() => { renderTpl(); const n = $('#tpQ'); if (n){ n.focus(); n.setSelectionRange(pos, pos); } }, 250);
+});
+let tplQTimer = null;
 $('#tplInput').addEventListener('change', async e => {
   const f = e.target.files[0]; e.target.value = ''; if (!f) return;
   try {
